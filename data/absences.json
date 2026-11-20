@@ -1,0 +1,86 @@
+[
+ {
+  "worker_id": "w003",
+  "site": "site-01",
+  "date": "2026-11-23",
+  "type": "annual_leave",
+  "approved": true
+ },
+ {
+  "worker_id": "w008",
+  "site": "site-02",
+  "date": "2026-11-24",
+  "type": "sickness",
+  "approved": true
+ },
+ {
+  "worker_id": "w012",
+  "site": "site-03",
+  "date": "2026-11-25",
+  "type": "annual_leave",
+  "approved": true
+ },
+ {
+  "worker_id": "w016",
+  "site": "site-04",
+  "date": "2026-11-23",
+  "type": "annual_leave",
+  "approved": true
+ },
+ {
+  "worker_id": "w021",
+  "site": "site-06",
+  "date": "2026-11-24",
+  "type": "sickness",
+  "approved": true
+ },
+ {
+  "worker_id": "w027",
+  "site": "site-07",
+  "date": "2026-11-25",
+  "type": "annual_leave",
+  "approved": true
+ },
+ {
+  "worker_id": "w032",
+  "site": "site-08",
+  "date": "2026-11-23",
+  "type": "annual_leave",
+  "approved": true
+ },
+ {
+  "worker_id": "w035",
+  "site": "site-09",
+  "date": "2026-11-24",
+  "type": "sickness",
+  "approved": true
+ },
+ {
+  "worker_id": "w041",
+  "site": "site-11",
+  "date": "2026-11-25",
+  "type": "annual_leave",
+  "approved": true
+ },
+ {
+  "worker_id": "w046",
+  "site": "site-12",
+  "date": "2026-11-23",
+  "type": "annual_leave",
+  "approved": true
+ },
+ {
+  "worker_id": "w050",
+  "site": "site-13",
+  "date": "2026-11-24",
+  "type": "sickness",
+  "approved": true
+ },
+ {
+  "worker_id": "w054",
+  "site": "site-14",
+  "date": "2026-11-25",
+  "type": "annual_leave",
+  "approved": true
+ }
+]

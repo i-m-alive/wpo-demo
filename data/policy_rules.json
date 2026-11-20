@@ -1,0 +1,22 @@
+[
+ {
+  "id": "max_weekly_hours",
+  "description": "No one works more than 48 hours in a week",
+  "limit": 48
+ },
+ {
+  "id": "rest_between_shifts",
+  "description": "At least 11 hours between two shifts",
+  "limit": 11
+ },
+ {
+  "id": "one_shift_per_day",
+  "description": "At most one shift per person per day",
+  "limit": 1
+ },
+ {
+  "id": "current_training",
+  "description": "Only people with current training work a line",
+  "limit": null
+ }
+]

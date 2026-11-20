@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wpo-reference Plan</title>
+<style>
+  :root {
+    --bg:#ffffff; --fg:#1f2328; --muted:#59636e; --border:#d1d9e0; --head:#f6f8fa; --code:#eff1f3; --accent:#0969da;
+    --card:#ffffff; --soft:#f6f8fa;
+    --ok:#1a7f37; --ok-bg:#dafbe1; --warn:#9a6700; --warn-bg:#fff8c5; --bad:#cf222e; --bad-bg:#ffebe9;
+    --you:#8250df; --you-bg:#fbefff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --border:#3d444d; --head:#151b23; --code:#262c36; --accent:#4493f8;
+      --card:#151b23; --soft:#161b22;
+      --ok:#7ee787; --ok-bg:#0f3320; --warn:#e3b341; --warn-bg:#3b2e05; --bad:#ff7b72; --bad-bg:#4a1418;
+      --you:#d2a8ff; --you-bg:#2f1c4a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --border:#3d444d; --head:#151b23; --code:#262c36; --accent:#4493f8;
+    --card:#151b23; --soft:#161b22;
+    --ok:#7ee787; --ok-bg:#0f3320; --warn:#e3b341; --warn-bg:#3b2e05; --bad:#ff7b72; --bad-bg:#4a1418;
+    --you:#d2a8ff; --you-bg:#2f1c4a;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  main { max-width:1020px; margin:0 auto; padding:32px 16px 80px; }
+  h1 { font-size:1.9em; line-height:1.25; margin:0 0 8px; }
+  h1 + p { color:var(--muted); margin-top:0; }
+  h2 { font-size:1.4em; margin:48px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--border); scroll-margin-top:12px; }
+  h3 { font-size:1.1em; margin:24px 0 8px; scroll-margin-top:12px; }
+  h4 { font-size:1em; margin:16px 0 6px; }
+  a { color:var(--accent); }
+  p, li { max-width:80ch; }
+  code { background:var(--code); padding:1px 5px; border-radius:4px; font:0.86em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre { background:var(--code); padding:12px 14px; border-radius:8px; overflow-x:auto; font:0.83em/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre code { background:none; padding:0; }
+  .tw { overflow-x:auto; margin:10px 0 18px; }
+  table { width:100%; border-collapse:collapse; min-width:620px; font-size:0.93em; }
+  th, td { border:1px solid var(--border); padding:6px 9px; text-align:left; vertical-align:top; }
+  th { background:var(--head); }
+  td.n { white-space:nowrap; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .muted { color:var(--muted); } .small { font-size:0.9em; }
+  nav.toc { background:var(--soft); border:1px solid var(--border); border-radius:10px; padding:14px 18px; margin:20px 0 8px; }
+  nav.toc ol { margin:6px 0 0; padding-left:22px; columns:2; column-gap:32px; } @media (max-width:640px) { nav.toc ol { columns:1; } }
+  .tldr { border-left:4px solid var(--accent); background:var(--soft); padding:12px 16px; border-radius:0 8px 8px 0; margin:16px 0; }
+  .tldr p { margin:6px 0; }
+  .note { border:1px solid var(--border); border-radius:8px; padding:10px 14px; margin:14px 0; background:var(--soft); }
+  .warnbox { border:1px solid var(--warn); background:var(--warn-bg); border-radius:8px; padding:10px 14px; margin:14px 0; }
+  .badbox { border:1px solid var(--bad); background:var(--bad-bg); border-radius:8px; padding:10px 14px; margin:14px 0; }
+  .tag { display:inline-block; font-size:0.78em; font-weight:600; padding:1px 8px; border-radius:999px; white-space:nowrap; vertical-align:1px; }
+  .you { color:var(--you); background:var(--you-bg); }
+  .dev { color:var(--accent); background:var(--soft); border:1px solid var(--border); }
+  .phase { border:1px solid var(--border); border-left:5px solid var(--accent); border-radius:10px; padding:4px 18px 12px; margin:22px 0; background:var(--card); }
+  .facts { display:flex; flex-wrap:wrap; gap:6px 14px; font-size:0.9em; color:var(--muted); margin:-2px 0 8px; }
+  .facts b { color:var(--fg); font-weight:600; }
+  .ac { border:1px solid var(--ok); background:var(--ok-bg); border-radius:8px; padding:8px 14px; margin:12px 0; }
+  .ac > strong { color:var(--ok); }
+  .ac ol { margin:4px 0; padding-left:22px; } .ac li { margin:3px 0; }
+  .flow { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:14px 0; }
+  .flow span.box { border:1px solid var(--border); border-radius:8px; padding:6px 10px; background:var(--card); font-size:0.9em; }
+  .flow span.arr { color:var(--muted); }
+  ol.steps > li { margin:6px 0; }
+  td.ok, .ok { color:var(--ok); font-weight:600; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>wpo-reference: analysis and implementation plan</h1>
+<p><time datetime="2026-11-20">20 Nov 2026</time> · A mock Workforce Optimization (WPO) product to point NaviStorm at for the demo. It is built from the team brief ("Build the reference repo"), the NaviStorm wireframes (screens 1–4, 6, 7, 10), and what NaviStorm already does on branch <code>m2-faults</code> / <code>m3-safety</code>. It lives in its own folder, <code>~/Desktop/wpo-reference</code>, outside NaviStorm.</p>
+
+<div class="tldr">
+  <p><strong>What we are building.</strong> A small, realistic system to break, that NaviStorm can draw with nothing configured by hand:</p>
+  <ul>
+    <li>six FastAPI stand-ins for SAP S/4, Workday, MES, the learning system, NVIDIA cuOpt and Teams, each with canned answers;</li>
+    <li>one MCP server in front of each, plus <code>policy</code> and <code>roster</code> (8 servers, 11 tools; write tools marked <code>destructiveHint</code>);</li>
+    <li>LangGraph agents that reach those systems <em>only</em> through MCP: a supervisor graph running forecast → optimize → compliance → writeback, with a "fail" loop back to the optimizer, and a separate manager copilot graph;</li>
+    <li>one Docker Compose file and one image: <code>docker compose up</code> starts all 15 services.</li>
+  </ul>
+  <p><strong>The test it must pass.</strong> Pointed at this folder, NaviStorm's Topology shows <strong>1 orchestrator, 5 agents, 11 MCP tools, 6 systems, 18 edges</strong>, and every node and edge says which source classified it (code, MCP manifest, Docker Compose, and after a sandbox run, OTel traces).</p>
+  <p><strong>Not in scope</strong> (from the brief): latency benchmarking, load generation, performance measurement. Nothing talks to a real system.</p>
+  <p><strong>Effort: about 4.5 developer-days.</strong> Your part: the decisions in section 4 (about 15 minutes), and the demo run-through at the end.</p>
+</div>
+
+<div class="tldr"><p><strong>Status, 20 Nov 2026: implemented; all exit criteria hold.</strong> 62 tests pass; <code>make smoke</code> passes (15 services, both routes over real MCP); <code>scripts/check_topology.py</code> passes all 22 checks against NaviStorm's scanner; a NaviStorm sandbox run succeeded (9 of 9 scenarios, 15 of 15 services, about 2,500 spans, 6 model calls answered by the LLM stub) and every node and edge then lists "OTel traces". Walkthrough: <code>DEMO.md</code>.</p>
+<p><strong>Where the work differed from this plan:</strong></p>
+<ul>
+  <li><strong>WD6:</strong> the model setting is <code>auto</code> (Azure OpenAI whenever an endpoint and key are present, otherwise offline), not "offline unless <code>WPO_LLM=azure</code>". In a NaviStorm sandbox the endpoint points at NaviStorm's LLM stub, so the agents' model calls are real and traced there.</li>
+  <li><strong>Reading MCP results:</strong> a real MCP server sends a list as one text block per item (plain strings unquoted). The Docker smoke test found that a single reader mis-read the 14 site ids; the agents now read lists and objects separately, and the test fakes answer in the real shape. NaviStorm's own stand-in fixture has the same latent bug (it is never run, so it does not show).</li>
+  <li><strong>The retry delay</strong> is the integer constant <code>FIXED_DELAY_S = 1</code> so NaviStorm reads "fixed 1 s"; with <code>1.0</code> it read "waits between attempts".</li>
+  <li><strong>Two NaviStorm gaps found and fixed</strong> (plan section 12, 5.3), on NaviStorm branch <code>wporef-scanner-n1</code>, built in a separate worktree so the M4 work in progress was not touched: <code>a3d8542</code> (a LangGraph node in its own module was also listed as "could not read") and <code>3cb5a00</code> (a Compose service with <code>build: .</code> and <code>image:</code> was left out of the sandbox plan). NaviStorm: 436 tests pass on that branch.</li>
+  <li>Training data has 84 rows (one per worker and line), not "one per worker".</li>
+</ul></div>
+
+<nav class="toc" aria-label="Contents"><strong>Contents</strong><ol>
+  <li><a href="#sources">What this plan is built from</a></li>
+  <li><a href="#requirements">Requirements, one by one</a></li>
+  <li><a href="#today">What exists today, and what is missing</a></li>
+  <li><a href="#decisions">Decisions for you</a></li>
+  <li><a href="#design">The repository, in detail</a></li>
+  <li><a href="#overview">Phases at a glance</a></li>
+  <li><a href="#p0">Phase 0 · Set up</a></li>
+  <li><a href="#p1">Phase 1 · Six stand-in systems</a></li>
+  <li><a href="#p2">Phase 2 · The MCP layer</a></li>
+  <li><a href="#p3">Phase 3 · Agents and orchestration</a></li>
+  <li><a href="#p4">Phase 4 · One Docker Compose, one image</a></li>
+  <li><a href="#p5">Phase 5 · Topology answer key and scan check</a></li>
+  <li><a href="#p6">Phase 6 · NaviStorm wired to the repo</a></li>
+  <li><a href="#p7">Phase 7 · Demo script and hand-over</a></li>
+  <li><a href="#exit">Exit criteria</a></li>
+  <li><a href="#risks">Risks</a></li>
+  <li><a href="#notdoing">Not in this task</a></li>
+</ol></nav>
+
+<!-- ============================================================ -->
+<h2 id="sources">1. What this plan is built from</h2>
+<div class="tw"><table>
+  <thead><tr><th>Source</th><th>What it contributes</th></tr></thead>
+  <tbody>
+    <tr><td>Team brief (mail)</td><td>The six stand-ins and their endpoints and canned answers; MCP-only access with <code>destructiveHint</code> on writes; the four supervised nodes and their retry settings; the copilot as its own graph; the deliberate unbounded retry; the target counts 1 · 5 · 11 · 6 · 18, classified from traces and MCP manifests, with sources recorded</td></tr>
+    <tr><td>Wireframe 2 · Topology (<code>Main.html</code>)</td><td>"WPO agent topology · From OTel traces and MCP proxy logs · 5 agents, 11 tools, 6 systems, 18 edges"; the same 11 tool names; systems shown as "SAP S/4 · production demand", "Workday · HR master", "MES · line availability", "Learning system · training currency", "NVIDIA cuOpt on Azure", "Microsoft Teams"; one Azure OpenAI endpoint</td></tr>
+    <tr><td>Wireframe 3 · Journey (<code>Journey.html</code>)</td><td>The journey "Nightly roster generation · 14 of 14 sites published by 05:00 · window 02:00–05:00"; five stages; what each connection supplies</td></tr>
+    <tr><td>Wireframes 4, 6, 7 · Experiment, Run, Findings</td><td>The demo story the repo must make possible later: Workday 429 on <code>workday.absences</code>; the forecast agent ignores Retry-After (6.2× calls); the optimizer waits for all 14 sites; the copilot serves yesterday's roster with no staleness marker</td></tr>
+    <tr><td>Wireframe 1 · Product overview</td><td>Three WPO journeys; "validated system · no production injection" on the write systems</td></tr>
+    <tr><td>Wireframe 10 · Interception</td><td>Sources ranked by trust: OTel traces and MCP manifests "authoritative", code and Compose "high"</td></tr>
+    <tr><td>NaviStorm today (commit <code>803bfac</code>)</td><td>Scanner work S1–S8 reads exactly this shape; a scan-only stand-in, <code>backend/tests/fixtures/wpo-reference</code>, with an answer key <code>expected.json</code> that passes; the runtime plan is built from <code>docker-compose.yml</code> (S6), and a sandbox run adds "OTel traces" as a source (S8)</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ============================================================ -->
+<h2 id="requirements">2. Requirements, one by one</h2>
+<p>Every line of the brief, as a requirement with an id, and how it is proved.</p>
+<div class="tw"><table>
+  <thead><tr><th>#</th><th>Requirement</th><th>Proved by</th></tr></thead>
+  <tbody>
+    <tr><td class="n">R1</td><td>Six local stand-ins, each a small FastAPI service in the same repo, running under one Docker setup</td><td>Phase 1 tests; <code>docker compose up</code> (Phase 4)</td></tr>
+    <tr><td class="n">R2</td><td><code>stub-sap</code>: <code>GET /production_plan</code> → canned list of 14 site ids; <code>POST /shift_confirm</code> → <code>{"status":"ok"}</code></td><td><code>tests/test_stubs.py</code></td></tr>
+    <tr><td class="n">R3</td><td><code>stub-workday</code>: <code>GET /absences</code>, <code>GET /workers</code> → canned lists; <code>POST /schedules</code> → <code>{"status":"ok"}</code></td><td>same</td></tr>
+    <tr><td class="n">R4</td><td><code>stub-mes</code>: <code>GET /line_availability</code> → canned list</td><td>same</td></tr>
+    <tr><td class="n">R5</td><td><code>stub-lms</code>: <code>GET /training_currency</code> → canned list</td><td>same</td></tr>
+    <tr><td class="n">R6</td><td><code>stub-cuopt</code>: <code>POST /solve</code> → <code>{"status":"OK","roster":{}}</code></td><td>same</td></tr>
+    <tr><td class="n">R7</td><td><code>stub-teams</code>: <code>POST /notify</code> → <code>{"status":"ok"}</code></td><td>same</td></tr>
+    <tr><td class="n">R8</td><td>Canned answers hard-coded; "we are not building a WPO application"</td><td>Code review: no logic beyond returning data</td></tr>
+    <tr><td class="n">R9</td><td>Each stand-in wrapped in an MCP server; write tools marked <code>destructiveHint: true</code></td><td><code>tests/test_mcp_servers.py</code> reads every server's tool list (<code>tools/list</code>) and checks annotations</td></tr>
+    <tr><td class="n">R10</td><td>Agents never call the stand-ins' HTTP endpoints directly</td><td>A test that searches <code>agents/</code> for stand-in hosts and ports; the scan shows no agent → system edge</td></tr>
+    <tr><td class="n">R11</td><td>LangGraph supervisor over nodes 1–4, in order</td><td><code>tests/test_graphs.py</code>: node order and edges of the compiled graph</td></tr>
+    <tr><td class="n">R12</td><td><code>forecast_demand</code>: <code>sap.production_plan</code>, <code>mes.line_availability</code>, <code>workday.absences</code>, Azure OpenAI; retry unbounded, fixed delay, ignores Retry-After; marked with a comment so nobody fixes it</td><td>Agent tests with a failing tool; NaviStorm reads "unbounded · fixed · ignores Retry-After" (S7)</td></tr>
+    <tr><td class="n">R13</td><td><code>optimize_roster</code>: <code>workday.workers</code>, <code>lms.training_currency</code>, <code>cuopt.solve</code>; retry 2, max_iter 4</td><td>Agent tests count attempts; NaviStorm reads "2 retries · max 4 iterations"</td></tr>
+    <tr><td class="n">R14</td><td><code>compliance</code>: <code>policy.rules</code>, <code>lms.training_currency</code>; no retry; conditional edge pass → writeback, fail → optimizer</td><td>Graph test for both branches</td></tr>
+    <tr><td class="n">R15</td><td><code>writeback</code>: <code>workday.schedules</code>, <code>sap.shift_confirm</code>, <code>teams.notify</code>; write path; retries on timeout</td><td>Agent test with a timing-out tool</td></tr>
+    <tr><td class="n">R16</td><td><code>manager_copilot</code>: <code>roster.store</code>, Azure OpenAI; separate graph with its own entry point; business hours</td><td>Graph test; hours test; its own route</td></tr>
+    <tr><td class="n">R17</td><td>NaviStorm, pointed at the repo, draws Topology with nothing configured by hand: 1 orchestrator, 5 agents, 11 MCP tools, 6 systems, 18 edges</td><td>Phase 5 scan against <code>expected-topology.json</code>; Phase 6 in the console. No <code>navistorm.yaml</code> in the repo</td></tr>
+    <tr><td class="n">R18</td><td>Each node classified from traces and MCP manifests</td><td>Phase 6: after one NaviStorm sandbox run, every node lists "OTel traces"; tools list "MCP tool manifest"</td></tr>
+    <tr><td class="n">R19</td><td>Each node and edge records which source classified it</td><td>Phase 6: the Topology and Knowledge graph show sources on every item</td></tr>
+    <tr><td class="n">R20</td><td>No latency benchmarking, load generation or performance measurement</td><td>No such code or scripts in the repo; stand-ins answer at once</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ============================================================ -->
+<h2 id="today">3. What exists today, and what is missing</h2>
+<p>NaviStorm already has a <strong>scan-only stand-in</strong> of this repo (<code>backend/tests/fixtures/wpo-reference</code>, 682 lines, added 20 Nov). It proves the scanner can read the target shape. It is not a demo repo:</p>
+<div class="tw"><table>
+  <thead><tr><th>Piece</th><th>Stand-in today</th><th>Needed for the demo</th></tr></thead>
+  <tbody>
+    <tr><td>Where</td><td>Inside NaviStorm's tests</td><td>Its own folder and git repository (your request)</td></tr>
+    <tr><td>Canned data</td><td>One absence, two workers; MES, LMS lists minimal</td><td>Data that reads like a real roster night: 14 sites, about 56 workers, lines, absences, training currency</td></tr>
+    <tr><td>Docker</td><td>Compose file, but no Dockerfile: <code>docker compose up</code> fails</td><td>One Dockerfile, one image, health checks; starts with one command</td></tr>
+    <tr><td>Model</td><td>Azure OpenAI only; without keys the agents fail</td><td>Works with Azure OpenAI keys, and with no keys at all (offline model) for demos</td></tr>
+    <tr><td>Agents' tool calls</td><td><code>forecast_demand</code> and <code>manager_copilot</code> call tools only if the model decides to (ReAct)</td><td>Every run calls every tool, so traces cover every edge, with or without a real model</td></tr>
+    <tr><td>Compliance loop</td><td>Can loop forever if compliance keeps failing</td><td>A cap, so a run always ends</td></tr>
+    <tr><td>Business hours</td><td>A docstring only</td><td>Enforced, with a setting</td></tr>
+    <tr><td>The wireframes' later demo story</td><td>Only the retry defect</td><td>Also "optimizer waits for all 14 sites" and "copilot serves the last roster without saying how old it is" (decision WD8)</td></tr>
+    <tr><td>Tests, README, demo script</td><td>README only</td><td>Tests for every part (written so they do not change the scan), README, DEMO.md</td></tr>
+  </tbody>
+</table></div>
+<div class="warnbox"><strong>Two things found during the analysis</strong>
+  <ul>
+    <li><strong>NaviStorm scans test folders.</strong> It skips only <code>.git</code>, <code>node_modules</code>, <code>.venv</code>, <code>dist</code>, <code>build</code> and caches. A test that builds a fake MCP server or agent would add nodes to the topology. Rule for this repo: tests use the real modules through their routes and functions, and never define agents, MCP servers or clients of their own. Phase 5 proves the counts are the same with and without <code>tests/</code>.</li>
+    <li><strong>NaviStorm's branch is busy.</strong> M4 work is in progress, uncommitted, on <code>m3-safety</code>. If Phase 5 finds a scanner gap, the fix goes on its own NaviStorm branch, never mixed into that work.</li>
+  </ul>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="decisions">4. Decisions (all accepted as recommended, 20 Nov 2026)</h2>
+<div class="tw"><table>
+  <thead><tr><th>#</th><th>Question</th><th>Options</th><th>Recommended</th></tr></thead>
+  <tbody>
+    <tr><td>WD1</td><td>Where does the repo live?</td><td>A: <code>~/Desktop/wpo-reference</code>, its own git repo, local only. B: also pushed to GitHub or Azure DevOps</td><td><strong>A now</strong>; push only when you ask (then the Connect screen can be demoed with a real remote)</td></tr>
+    <tr><td>WD2</td><td>The journey wireframe has <code>forecast-queue</code> (Service Bus) and the optimizer and compliance writing to <code>roster.store</code>; the brief has neither</td><td>A: follow the brief. B: add the queue and writes</td><td><strong>A</strong>. The brief is the spec, says "only through MCP", and its counts (18 = 4 hand-offs + 12 tool calls + 2 model calls) are what NaviStorm already checks. The queue can be a later variant</td></tr>
+    <tr><td>WD3</td><td>Agent names: the brief's <code>forecast_demand</code> … or the wireframe's "Demand Forecast" …</td><td>A: brief. B: wireframe</td><td><strong>A</strong>. NaviStorm names nodes from the code; renaming them in code would not read like a real codebase</td></tr>
+    <tr><td>WD4</td><td>"LangGraph supervisor": a fixed-order graph, or the <code>langgraph-supervisor</code> package (a model chooses the next agent)</td><td>A: fixed-order <code>StateGraph</code>, compiled as <code>supervisor</code>. B: model-routed</td><td><strong>A</strong>. "Running in order" is the brief; a model-routed run would differ every time and needs a real model</td></tr>
+    <tr><td>WD5</td><td>"Running under one docker"</td><td>A: one Compose file and one image, all 15 services from <code>docker compose up</code>. B: one container running every process</td><td><strong>A</strong>. Each service stays a separate node in NaviStorm's run (and its traces); one image keeps the build to one step</td></tr>
+    <tr><td>WD6</td><td>The model</td><td>A: Azure OpenAI only. B: Azure OpenAI when keys are set, otherwise an offline model with fixed answers</td><td><strong>B</strong>, offline by default. Demos work anywhere, nothing leaves the machine, and the topology is identical either way (checked in Phase 5)</td></tr>
+    <tr><td>WD7</td><td>Who calls the tools</td><td>A: the model decides (ReAct). B: each node calls its tools in code, then asks the model to reason over the results</td><td><strong>B</strong>. Every run then touches every MCP tool, so traces cover all 18 edges; it also behaves the same with the offline model</td></tr>
+    <tr><td>WD8</td><td>Extra deliberate weaknesses from the Run and Findings wireframes</td><td>A: only the unbounded retry (the brief). B: also W2 "optimizer waits for all 14 sites" and W3 "copilot serves the last published roster with no age shown"</td><td><strong>B</strong>. They are how the code naturally behaves (no extra logic), marked like W1, and they make the wireframe's findings demonstrable from M5 on</td></tr>
+    <tr><td>WD9</td><td>Business hours for the copilot</td><td>A: enforced always. B: enforced with a setting; the Compose file sets "always open" so demos work at any hour</td><td><strong>B</strong>. Default in code 07:00–19:00 Europe/London; outside, <code>423</code> with a clear message; <code>COPILOT_HOURS</code> changes it</td></tr>
+    <tr><td>WD10</td><td>The compliance "fail" loop</td><td>A: unlimited, as drawn. B: at most 3 rounds, then the run ends "rejected"</td><td><strong>B</strong>. A demo run must always end; the loop stays a loop in the graph (NaviStorm still draws it)</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ============================================================ -->
+<h2 id="design">5. The repository, in detail</h2>
+
+<h3>5.1 Layout</h3>
+<pre><code>wpo-reference/
+  README.md              what it is, how to run it, what NaviStorm should show
+  DEMO.md                the click-by-click demo (Phase 7)
+  docker-compose.yml     15 services, one image
+  Dockerfile             python:3.12-slim, non-root, read-only friendly
+  .dockerignore  .gitignore  .env.example  Makefile
+  requirements.txt       pinned runtime dependencies
+  requirements-dev.txt   pytest, respx (HTTP mocking)
+  expected-topology.json the answer key NaviStorm must match (Phase 5)
+  data/                  canned answers as JSON (5.3)
+  stubs/                 six FastAPI stand-ins + _common.py
+  mcp_servers/           eight MCP servers (one file each)
+  agents/                llm.py, mcp_client.py, five agent modules, supervisor.py, hours.py, main.py
+  tests/                 unit and API tests (rule: no agents, servers or clients defined here)
+  scripts/smoke.sh       compose up, call both routes, compose down
+  docs/Implementation-Plan.html   this plan</code></pre>
+
+<h3>5.2 Services and ports</h3>
+<div class="tw"><table>
+  <thead><tr><th>Service</th><th>Command</th><th>Port (inside)</th><th>Published</th><th>Depends on</th></tr></thead>
+  <tbody>
+    <tr><td><code>stub-sap</code>, <code>stub-workday</code>, <code>stub-mes</code>, <code>stub-lms</code>, <code>stub-cuopt</code>, <code>stub-teams</code></td><td><code>uvicorn stubs.stub_&lt;name&gt;:app --host 0.0.0.0 --port 8000</code></td><td>8000</td><td>no</td><td>—</td></tr>
+    <tr><td><code>mcp-sap</code> … <code>mcp-teams</code> (6)</td><td><code>python -m mcp_servers.&lt;name&gt;_server</code></td><td>9000, path <code>/mcp</code></td><td>no</td><td>its stand-in</td></tr>
+    <tr><td><code>mcp-policy</code>, <code>mcp-roster</code></td><td>same</td><td>9000</td><td>no</td><td>—</td></tr>
+    <tr><td><code>agents</code></td><td><code>uvicorn agents.main:app --host 0.0.0.0 --port 8080</code></td><td>8080</td><td><strong>8080</strong> (the only one)</td><td>all 8 MCP servers</td></tr>
+  </tbody>
+</table></div>
+<p class="small">Only the agents are reachable from your machine. The stand-ins and MCP servers talk on Compose's private network, which is how "agents only through MCP" is enforced by the setup as well as the code.</p>
+
+<h3>5.3 Canned data (hard-coded JSON in <code>data/</code>)</h3>
+<div class="tw"><table>
+  <thead><tr><th>File</th><th>Shape</th><th>Size</th><th>Served by</th></tr></thead>
+  <tbody>
+    <tr><td><code>sites.json</code></td><td><code>["site-01", …, "site-14"]</code></td><td>14 ids (as the brief says)</td><td><code>GET /production_plan</code></td></tr>
+    <tr><td><code>workers.json</code></td><td><code>{id, name, site, contract_hours, lines: [...]}</code></td><td>56 (4 per site), fictional names</td><td><code>GET /workers</code></td></tr>
+    <tr><td><code>absences.json</code></td><td><code>{worker_id, site, date, type: annual_leave | sickness, approved}</code></td><td>12</td><td><code>GET /absences</code></td></tr>
+    <tr><td><code>line_availability.json</code></td><td><code>{site, line, status: running | planned_maintenance, from, to}</code></td><td>2 lines per site (28), 3 in maintenance</td><td><code>GET /line_availability</code></td></tr>
+    <tr><td><code>training_currency.json</code></td><td><code>{worker_id, line, valid_until, current}</code></td><td>one row per worker and line; 5 lapsed</td><td><code>GET /training_currency</code></td></tr>
+    <tr><td><code>policy_rules.json</code></td><td><code>{id, description, limit}</code></td><td>4 (max weekly hours 48, 11 h rest, one shift a day, current training)</td><td><code>policy.rules</code> (no stand-in: an internal ruleset)</td></tr>
+    <tr><td><code>roster_published.json</code></td><td><code>{site, published_at, shifts: [...]}</code></td><td>14 sites, dated the previous night</td><td><code>roster.store</code> (W3: no age shown to the copilot's user)</td></tr>
+  </tbody>
+</table></div>
+<p class="small">Write endpoints accept any JSON object and answer exactly as the brief says. No randomness, no delays, no state that changes between calls: every run repeats exactly. No real company, person or system names in the data.</p>
+
+<h3>5.4 MCP servers and tools (11)</h3>
+<div class="tw"><table>
+  <thead><tr><th>Server</th><th>Tool</th><th>Calls</th><th>Returns</th><th>Annotation</th></tr></thead>
+  <tbody>
+    <tr><td rowspan="2"><code>sap</code></td><td><code>production_plan()</code></td><td><code>GET stub-sap/production_plan</code></td><td><code>list[str]</code></td><td><code>readOnlyHint</code></td></tr>
+    <tr><td><code>shift_confirm(site, shifts)</code></td><td><code>POST stub-sap/shift_confirm</code></td><td><code>dict</code></td><td><code>destructiveHint</code></td></tr>
+    <tr><td rowspan="3"><code>workday</code></td><td><code>absences()</code></td><td><code>GET /absences</code></td><td><code>list[dict]</code></td><td><code>readOnlyHint</code></td></tr>
+    <tr><td><code>workers()</code></td><td><code>GET /workers</code></td><td><code>list[dict]</code></td><td><code>readOnlyHint</code></td></tr>
+    <tr><td><code>schedules(roster)</code></td><td><code>POST /schedules</code></td><td><code>dict</code></td><td><code>destructiveHint</code></td></tr>
+    <tr><td><code>mes</code></td><td><code>line_availability()</code></td><td><code>GET /line_availability</code></td><td><code>list[dict]</code></td><td><code>readOnlyHint</code></td></tr>
+    <tr><td><code>lms</code></td><td><code>training_currency()</code></td><td><code>GET /training_currency</code></td><td><code>list[dict]</code></td><td><code>readOnlyHint</code></td></tr>
+    <tr><td><code>cuopt</code></td><td><code>solve(payload)</code></td><td><code>POST /solve</code></td><td><code>dict</code></td><td><code>readOnlyHint</code> (the brief calls it a read)</td></tr>
+    <tr><td><code>teams</code></td><td><code>notify(payload)</code></td><td><code>POST /notify</code></td><td><code>dict</code></td><td><code>destructiveHint</code></td></tr>
+    <tr><td><code>policy</code></td><td><code>rules()</code></td><td>its own data</td><td><code>list[dict]</code></td><td><code>readOnlyHint</code></td></tr>
+    <tr><td><code>roster</code></td><td><code>store(site)</code></td><td>its own data</td><td><code>dict</code></td><td><code>readOnlyHint</code></td></tr>
+  </tbody>
+</table></div>
+<p class="small">Each server is one file with a literal <code>FastMCP("&lt;name&gt;", host="0.0.0.0", port=9000)</code> and literal annotations, so NaviStorm reads them as an MCP manifest. Return types are written out (<code>list[...]</code> or <code>dict</code>), which NaviStorm uses to decide whether "empty result" applies (M2). A stand-in that does not answer becomes an MCP tool error, never a crash.</p>
+
+<h3>5.5 Agents and graphs</h3>
+<div class="tw"><table>
+  <thead><tr><th>Node</th><th>Tools (literal names through <code>tools_named</code>)</th><th>Model</th><th>Retry, exactly</th></tr></thead>
+  <tbody>
+    <tr><td><code>forecast_demand</code></td><td><code>sap.production_plan</code>, <code>mes.line_availability</code>, <code>workday.absences</code></td><td>yes: demand per site from the three results</td><td><strong>W1, deliberate</strong>: <code>while True</code>, <code>time.sleep(FIXED_DELAY_S)</code> (1 s) on a tool error or <code>RateLimitError</code>; never reads Retry-After. Comment: <code># DELIBERATE DEFECT (demo 1) - do not fix</code></td></tr>
+    <tr><td><code>optimize_roster</code></td><td><code>workday.workers</code>, <code>lms.training_currency</code>, <code>cuopt.solve</code></td><td>no</td><td><code>MAX_RETRIES = 2</code> (3 attempts), inner <code>MAX_ITER = 4</code>. <strong>W2</strong>: one solve for all 14 sites, after every forecast is in</td></tr>
+    <tr><td><code>compliance</code></td><td><code>policy.rules</code>, <code>lms.training_currency</code></td><td>no</td><td>none. Checks the four rules; "pass" → <code>writeback</code>, "fail" → <code>optimize_roster</code>, at most 3 rounds (WD10)</td></tr>
+    <tr><td><code>writeback</code></td><td><code>workday.schedules</code>, <code>sap.shift_confirm</code>, <code>teams.notify</code></td><td>no</td><td><code>for _ in range(3)</code>, <code>continue</code> on <code>httpx.TimeoutException</code> (and the MCP timeout it surfaces as)</td></tr>
+    <tr><td><code>manager_copilot</code> (own graph)</td><td><code>roster.store</code></td><td>yes: answers the manager's question from the roster</td><td>none. Business hours (WD9). <strong>W3</strong>: answers from the last published roster without saying how old it is</td></tr>
+  </tbody>
+</table></div>
+<pre><code>supervisor (StateGraph, compiled as `supervisor`)
+  START → forecast_demand → optimize_roster → compliance ─pass→ writeback → END
+                                   ↑                │
+                                   └──── fail ──────┘   (≤ 3 rounds)
+
+copilot (StateGraph, its own entry point)
+  START → manager_copilot → END
+
+agents service (FastAPI)
+  POST /roster/run    {"site": "site-01"} or {} for all 14   → supervisor
+  POST /copilot/ask   {"question": "..."}                    → copilot (423 outside hours)
+  GET  /healthz</code></pre>
+
+<h3>5.6 The model (WD6)</h3>
+<ul>
+  <li><code>agents/llm.py</code> has one factory. With <code>AZURE_OPENAI_ENDPOINT</code> and <code>AZURE_OPENAI_API_KEY</code> set, and <code>WPO_LLM=azure</code>, it returns <code>AzureChatOpenAI</code> (deployment from <code>AZURE_OPENAI_DEPLOYMENT</code>, default <code>gpt-4o</code>). Otherwise it returns an offline chat model with fixed answers ("Demand for site-03: 2 shifts on line A …").</li>
+  <li>Both are used the same way (<code>llm.ainvoke</code>), so the graph does not care. NaviStorm must count exactly one model (Azure OpenAI, gpt-4o) either way: a Phase 5 acceptance criterion.</li>
+  <li>Keys only in <code>.env</code>, which git ignores; <code>.env.example</code> holds names and blanks.</li>
+  <li>In NaviStorm's sandbox the Azure endpoint is sent to NaviStorm's LLM stub whatever the repo says (S6), so a sandbox run never reaches Azure.</li>
+</ul>
+
+<h3>5.7 What NaviStorm must draw (<code>expected-topology.json</code>)</h3>
+<div class="tw"><table>
+  <thead><tr><th>Layer</th><th>Count</th><th>Items</th></tr></thead>
+  <tbody>
+    <tr><td>Orchestrator</td><td>1</td><td><code>supervisor</code> (triggered by <code>POST /roster/run</code>); <code>manager_copilot</code> is a one-agent entry point (<code>POST /copilot/ask</code>), not a second orchestrator</td></tr>
+    <tr><td>Agents</td><td>5</td><td>forecast_demand, optimize_roster, compliance, writeback, manager_copilot</td></tr>
+    <tr><td>MCP tools</td><td>11</td><td>as in 5.4</td></tr>
+    <tr><td>Systems</td><td>6</td><td>SAP S/4, Workday, MES, Learning system, NVIDIA cuOpt, Microsoft Teams (named from the stand-ins: <code>stub-sap</code> → SAP S/4, S4)</td></tr>
+    <tr><td>Model</td><td>1</td><td>Azure OpenAI · gpt-4o</td></tr>
+    <tr><td>Agent-level edges</td><td><strong>18</strong></td><td>4 hand-offs (supervisor → forecast → optimizer → compliance → writeback), 12 MCP tool calls, 2 model calls</td></tr>
+    <tr><td>Counted apart</td><td>1 + 9</td><td>the compliance → optimizer "fail" loop; 9 tool → system links (R/W as in 5.4)</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ============================================================ -->
+<h2 id="overview">6. Phases at a glance</h2>
+<div class="flow">
+  <span class="box">0 · Set up</span><span class="arr">→</span>
+  <span class="box">1 · Stand-ins</span><span class="arr">→</span>
+  <span class="box">2 · MCP layer</span><span class="arr">→</span>
+  <span class="box">3 · Agents</span><span class="arr">→</span>
+  <span class="box">4 · Compose</span><span class="arr">→</span>
+  <span class="box">5 · Scan check</span><span class="arr">→</span>
+  <span class="box">6 · NaviStorm</span><span class="arr">→</span>
+  <span class="box">7 · Demo + hand-over</span>
+</div>
+<div class="tw"><table>
+  <thead><tr><th>Phase</th><th>Outcome</th><th>Est.</th></tr></thead>
+  <tbody>
+    <tr><td>0 · Set up</td><td>Folder, git, Python 3.12 environment, layout, decisions recorded</td><td>0.25 d</td></tr>
+    <tr><td>1 · Stand-ins</td><td>Six FastAPI stand-ins with canned data and tests</td><td>0.5 d</td></tr>
+    <tr><td>2 · MCP layer</td><td>8 servers, 11 tools, annotations, error handling, tests</td><td>0.75 d</td></tr>
+    <tr><td>3 · Agents</td><td>Five nodes, two graphs, the model factory, the API, retry behaviour, tests</td><td>1.25 d</td></tr>
+    <tr><td>4 · Compose</td><td>One image, 15 services, health checks, <code>make up</code>, smoke test</td><td>0.5 d</td></tr>
+    <tr><td>5 · Scan check</td><td>Answer key; NaviStorm's scanner matches it, with and without <code>tests/</code>, both model modes</td><td>0.5 d</td></tr>
+    <tr><td>6 · NaviStorm</td><td>Onboarded in the console; Topology 1 · 5 · 11 · 6 · 18 with sources; a sandbox run adds "OTel traces"</td><td>0.5 d</td></tr>
+    <tr><td>7 · Demo + hand-over</td><td>README, DEMO.md, screenshots, first commit</td><td>0.25 d</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ============================================================ -->
+<h2 id="p0">7. Phase 0 · Set up</h2>
+<section class="phase">
+<div class="facts"><span><b>0.25 day</b></span><span>Needs you: WD1–WD10</span></div>
+<h4>0.1 Folder and git</h4>
+<ol class="steps">
+  <li><code>~/Desktop/wpo-reference</code> (exists; holds this plan). <code>git init</code>, default branch <code>main</code>.</li>
+  <li><code>.gitignore</code>: <code>.env</code>, <code>.venv/</code>, <code>__pycache__/</code>, <code>.pytest_cache/</code>.</li>
+</ol>
+<h4>0.2 Python environment</h4>
+<ol class="steps">
+  <li><code>python3.12 -m venv .venv</code>; <code>requirements.txt</code> pinned to exact versions known to work together: <code>fastapi</code>, <code>uvicorn</code>, <code>httpx</code>, <code>mcp</code>, <code>langgraph</code>, <code>langchain-core</code>, <code>langchain-openai</code>, <code>langchain-mcp-adapters</code>, <code>openai</code>.</li>
+  <li><code>requirements-dev.txt</code>: <code>pytest</code>, <code>pytest-asyncio</code>, <code>respx</code>.</li>
+</ol>
+<h4>0.3 Decisions</h4>
+<ol class="steps"><li>Your answers to WD1–WD10 written into the README's "Decisions" section.</li></ol>
+<div class="ac"><strong>Acceptance criteria</strong><ol>
+  <li>The folder is a git repo; <code>.env</code> is ignored.</li>
+  <li><code>pip install -r requirements.txt -r requirements-dev.txt</code> works on a clean 3.12 environment.</li>
+  <li>WD1–WD10 are recorded.</li>
+</ol></div>
+</section>
+
+<!-- ============================================================ -->
+<h2 id="p1">8. Phase 1 · Six stand-in systems</h2>
+<section class="phase">
+<div class="facts"><span><b>0.5 day</b></span><span>Requirements R1–R8</span></div>
+<h4>1.1 Shared pieces (<code>stubs/_common.py</code>)</h4>
+<ol class="steps">
+  <li><code>load(name)</code> reads one JSON file from <code>data/</code> once, at start-up.</li>
+  <li><code>make_app(title)</code> returns a FastAPI app with <code>GET /healthz</code> → <code>{"ok": true, "service": title}</code>, and no docs pages.</li>
+</ol>
+<h4>1.2 The canned data</h4>
+<ol class="steps"><li>The seven files of 5.3, hand-written, consistent with each other (every worker belongs to one of the 14 sites; every absence and training row names a real worker id from the file).</li></ol>
+<h4>1.3 The six stand-ins</h4>
+<ol class="steps">
+  <li><code>stub_sap.py</code>, <code>stub_workday.py</code>, <code>stub_mes.py</code>, <code>stub_lms.py</code>, <code>stub_cuopt.py</code>, <code>stub_teams.py</code>: the endpoints of R2–R7, each a few lines. <code>FastAPI(title="stub-sap")</code> and so on, so the service names say what they stand in for.</li>
+  <li>POST bodies: any JSON object (<code>dict</code>); anything else is a 422 from FastAPI.</li>
+</ol>
+<h4>1.4 Tests (<code>tests/test_stubs.py</code>)</h4>
+<ol class="steps"><li>Every endpoint through FastAPI's <code>TestClient</code>: status, exact body for writes, list lengths and shapes for reads (14 site ids, 56 workers …); the data cross-references hold; <code>/healthz</code> on all six.</li></ol>
+<div class="ac"><strong>Acceptance criteria</strong><ol>
+  <li>Each endpoint answers exactly as the brief's table: <code>{"status":"ok"}</code> for SAP, Workday and Teams writes, <code>{"status":"OK","roster":{}}</code> for cuOpt, a list of 14 site ids for the production plan.</li>
+  <li>Answers are the same on every call; nothing sleeps or varies.</li>
+  <li>No stand-in calls anything else.</li>
+  <li>All stand-in tests pass.</li>
+</ol></div>
+</section>
+
+<!-- ============================================================ -->
+<h2 id="p2">9. Phase 2 · The MCP layer</h2>
+<section class="phase">
+<div class="facts"><span><b>0.75 day</b></span><span>Requirements R9, R10</span></div>
+<h4>2.1 Six servers in front of the stand-ins</h4>
+<ol class="steps">
+  <li>One file per server (<code>sap_server.py</code> …), literal <code>FastMCP("sap", host="0.0.0.0", port=9000)</code>, streamable HTTP at <code>/mcp</code>, stateless, JSON answers.</li>
+  <li>Each reads its stand-in's address from one variable (<code>SAP_URL</code>, default <code>http://stub-sap:8000</code>), uses <code>httpx</code> with a 10 s timeout, and raises an MCP tool error with a short message when the stand-in fails or times out.</li>
+</ol>
+<h4>2.2 Two internal servers</h4>
+<ol class="steps"><li><code>policy_server.py</code> (<code>rules</code>) and <code>roster_server.py</code> (<code>store</code>), serving <code>data/policy_rules.json</code> and <code>data/roster_published.json</code>. No stand-in behind them: they are not systems.</li></ol>
+<h4>2.3 Annotations and types</h4>
+<ol class="steps"><li>As in 5.4: <code>ToolAnnotations(readOnlyHint=True)</code> on reads, <code>ToolAnnotations(destructiveHint=True)</code> on the three writes; return types written out; a one-line docstring per tool saying what it supplies (the wireframe's "What it supplies").</li></ol>
+<h4>2.4 Tests (<code>tests/test_mcp_servers.py</code>)</h4>
+<ol class="steps">
+  <li>For each server: its tool list (names, annotations, input schema), via the server object's own listing. No new servers are defined in tests.</li>
+  <li>Calling each tool with the stand-in mocked by <code>respx</code>: the right method and path, the answer passed through; a 5xx or timeout becomes a tool error.</li>
+</ol>
+<div class="ac"><strong>Acceptance criteria</strong><ol>
+  <li>8 servers expose exactly 11 tools with the names in 5.4.</li>
+  <li>Exactly the three write tools carry <code>destructiveHint: true</code>; the other eight carry <code>readOnlyHint: true</code>.</li>
+  <li>A failing or slow stand-in gives a tool error, never a crash.</li>
+  <li>All MCP tests pass.</li>
+</ol></div>
+</section>
+
+<!-- ============================================================ -->
+<h2 id="p3">10. Phase 3 · Agents and orchestration</h2>
+<section class="phase">
+<div class="facts"><span><b>1.25 days</b></span><span>Requirements R10–R16</span></div>
+<h4>3.1 MCP client (<code>agents/mcp_client.py</code>)</h4>
+<ol class="steps">
+  <li>One <code>MultiServerMCPClient</code> with the 8 servers, each URL from its variable (<code>SAP_MCP_URL</code> …).</li>
+  <li><code>tools_named("server.tool", ...)</code> returns those tools, by their literal names (NaviStorm reads these; S1). <code>data()</code> turns a tool result into JSON.</li>
+  <li>No other way to reach a system exists in <code>agents/</code> (R10).</li>
+</ol>
+<h4>3.2 The model factory (<code>agents/llm.py</code>)</h4>
+<ol class="steps"><li>As in 5.6; the offline model returns fixed, readable answers built from its input, so the demo shows sensible text.</li></ol>
+<h4>3.3 <code>forecast_demand</code> (W1)</h4>
+<ol class="steps">
+  <li>Calls the three tools, then asks the model for demand per site from the results (one prompt for all sites the run covers).</li>
+  <li>Wrapped in the deliberate retry: <code>while True</code>, fixed <code>time.sleep(FIXED_DELAY_S)</code>, catching tool errors and <code>RateLimitError</code>, never reading Retry-After. The comment block above it says it is deliberate, what it demonstrates, and not to fix it.</li>
+</ol>
+<h4>3.4 <code>optimize_roster</code> (W2)</h4>
+<ol class="steps"><li>Workers, training currency, then <code>cuopt.solve</code> for all sites in one payload. <code>MAX_RETRIES = 2</code>, <code>MAX_ITER = 4</code>, as in the stand-in fixture.</li></ol>
+<h4>3.5 <code>compliance</code> and the conditional edge</h4>
+<ol class="steps">
+  <li>Reads the rules and training currency; checks the roster (the solver's empty roster passes, so a normal run goes straight through).</li>
+  <li><code>add_conditional_edges("compliance", route, {"pass": "writeback", "fail": "optimize_roster"})</code>; a <code>rounds</code> counter in the state ends the run as "rejected" after 3 rounds (WD10). No retry.</li>
+  <li>A setting, <code>WPO_FORCE_COMPLIANCE_FAIL=1</code>, makes the check fail, to show the loop in a demo.</li>
+</ol>
+<h4>3.6 <code>writeback</code></h4>
+<ol class="steps"><li>Schedules, shift confirmation, notification; <code>for _ in range(3)</code> with <code>continue</code> on a timeout; returns <code>{"published": true|false}</code>.</li></ol>
+<h4>3.7 The supervisor graph (<code>agents/supervisor.py</code>)</h4>
+<ol class="steps"><li>The <code>StateGraph</code> of 5.5, compiled as <code>supervisor</code>. State: <code>sites</code>, <code>forecast</code>, <code>roster</code>, <code>compliant</code>, <code>rounds</code>, <code>published</code>.</li></ol>
+<h4>3.8 The copilot graph (<code>agents/manager_copilot.py</code>, <code>agents/hours.py</code>)</h4>
+<ol class="steps">
+  <li>Its own <code>StateGraph</code>: <code>START → manager_copilot → END</code>, compiled as <code>copilot</code>.</li>
+  <li>Reads <code>roster.store</code> for the site asked about, then asks the model. W3: the answer never mentions when the roster was published.</li>
+  <li><code>hours.py</code>: <code>COPILOT_HOURS</code> (default <code>07:00-19:00</code>), <code>COPILOT_TZ</code> (default <code>Europe/London</code>); <code>00:00-24:00</code> means always open.</li>
+</ol>
+<h4>3.9 The API (<code>agents/main.py</code>)</h4>
+<ol class="steps">
+  <li>Routes of 5.5. <code>/roster/run</code> runs one site or all 14; <code>/copilot/ask</code> answers <code>423</code> with "The copilot answers between 07:00 and 19:00 (Europe/London)" outside hours.</li>
+  <li>Errors come back as JSON with a plain message; nothing prints secrets.</li>
+</ol>
+<h4>3.10 Tests (<code>tests/test_agents.py</code>, <code>test_graphs.py</code>, <code>test_api.py</code>)</h4>
+<ol class="steps">
+  <li>Graphs: node names and order; the conditional edge's two targets; the copilot graph is separate.</li>
+  <li>Each node with its tools replaced <em>through the test's monkeypatch of <code>tools_named</code></em> (no fake servers or clients defined): which tools it asks for; W1 keeps retrying with a fixed delay and ignores a Retry-After value (time patched, stops after N tries by the test); optimizer gives up after 3 attempts; writeback retries a timeout twice; compliance fail → optimizer, ending after 3 rounds.</li>
+  <li>API: both routes with the offline model; 423 outside hours; <code>/healthz</code>.</li>
+  <li>A test that no file in <code>agents/</code> mentions a stand-in host or port (R10).</li>
+</ol>
+<div class="ac"><strong>Acceptance criteria</strong><ol>
+  <li>With the offline model and all servers running, <code>POST /roster/run</code> calls the 10 tools of the four supervised nodes, and <code>POST /copilot/ask</code> calls <code>roster.store</code>: together, all 11.</li>
+  <li>The four retry behaviours match R12–R15 exactly; the W1 comment is present.</li>
+  <li>The compliance loop ends after at most 3 rounds.</li>
+  <li>Outside business hours the copilot refuses with 423 and a readable message.</li>
+  <li>All agent, graph and API tests pass, with no network and no API keys.</li>
+</ol></div>
+</section>
+
+<!-- ============================================================ -->
+<h2 id="p4">11. Phase 4 · One Docker Compose, one image</h2>
+<section class="phase">
+<div class="facts"><span><b>0.5 day</b></span><span>Requirements R1, WD5</span></div>
+<h4>4.1 Dockerfile</h4>
+<ol class="steps"><li><code>python:3.12-slim</code> pinned by digest; dependencies first (cached layer); the code; a non-root user; no write to the file system at run time (works under NaviStorm's read-only hardening).</li></ol>
+<h4>4.2 <code>docker-compose.yml</code></h4>
+<ol class="steps">
+  <li>The 15 services of 5.2, all <code>build: .</code> (one image, built once), commands and variables exactly as there.</li>
+  <li>Health checks: stand-ins and agents on <code>/healthz</code>; MCP servers on their port. <code>depends_on</code> with <code>condition: service_healthy</code>.</li>
+  <li>Agents: <code>WPO_LLM=${WPO_LLM:-offline}</code>, Azure variables from <code>.env</code> (blank by default), <code>COPILOT_HOURS=${COPILOT_HOURS:-00:00-24:00}</code> (WD9).</li>
+</ol>
+<h4>4.3 Convenience</h4>
+<ol class="steps">
+  <li><code>Makefile</code>: <code>make up</code>, <code>make down</code>, <code>make logs</code>, <code>make test</code>, <code>make smoke</code>.</li>
+  <li><code>scripts/smoke.sh</code>: build, start, wait for health, <code>POST /roster/run</code> and <code>POST /copilot/ask</code>, check both answer 200 with the expected shape, stop and remove everything.</li>
+</ol>
+<div class="ac"><strong>Acceptance criteria</strong><ol>
+  <li><code>docker compose up</code> starts all 15 services healthy from a clean machine, with no <code>.env</code>.</li>
+  <li><code>make smoke</code> passes and leaves no containers behind.</li>
+  <li>Only port 8080 is published.</li>
+  <li>With Azure keys in <code>.env</code> and <code>WPO_LLM=azure</code>, both routes still answer 200 (checked once by you, if you have keys).</li>
+</ol></div>
+</section>
+
+<!-- ============================================================ -->
+<h2 id="p5">12. Phase 5 · Topology answer key and scan check</h2>
+<section class="phase">
+<div class="facts"><span><b>0.5 day</b></span><span>Requirements R17, R19</span></div>
+<h4>5.1 The answer key</h4>
+<ol class="steps"><li><code>expected-topology.json</code>: the counts and every node and edge of 5.7, in the same format as NaviStorm's stand-in <code>expected.json</code>, written by hand before the scan.</li></ol>
+<h4>5.2 Scan with NaviStorm's scanner</h4>
+<ol class="steps">
+  <li>Run NaviStorm's scanner (the same code the console uses) on the folder, from NaviStorm's environment; compare with the key: counts, names, kinds, R/W, the loop, triggers, retry settings per connection.</li>
+  <li>Repeat with <code>tests/</code> removed from a copy: identical result (the tests rule of section 3).</li>
+  <li>Repeat with the model factory in each mode: still exactly one model.</li>
+  <li>Check sources: tools and their servers list "MCP tool manifest"; services and connections between them list "Docker Compose"; agents, graph and model list "Code".</li>
+</ol>
+<h4>5.3 If something differs</h4>
+<ol class="steps">
+  <li>If the repo uses an unusual pattern, change the repo to the common one.</li>
+  <li>If the repo is right and the scanner misses it, it is a NaviStorm gap: fixed on its own NaviStorm branch, with a test, never mixed into the M4 work on <code>m3-safety</code>. NaviStorm's stand-in fixture is then updated to match this repo.</li>
+</ol>
+<div class="ac"><strong>Acceptance criteria</strong><ol>
+  <li>The scan gives 1 orchestrator, 5 agents, 11 MCP tools, 6 systems, 1 model and 18 agent-level edges, plus the loop and 9 tool → system links, all matching the key.</li>
+  <li>The same with and without <code>tests/</code>, and with the model in either mode.</li>
+  <li>Every node and edge has at least one source; every MCP tool has "MCP tool manifest".</li>
+  <li>Retry settings read per connection: forecast "unbounded · fixed · ignores Retry-After", optimizer "2 retries · max 4 iterations", compliance "no retry", writeback "2 retries · on timeout".</li>
+</ol></div>
+</section>
+
+<!-- ============================================================ -->
+<h2 id="p6">13. Phase 6 · NaviStorm wired to the repo</h2>
+<section class="phase">
+<div class="facts"><span><b>0.5 day</b></span><span>Requirements R17–R19</span></div>
+<h4>6.1 Onboarding in the console</h4>
+<ol class="steps">
+  <li>NaviStorm with <code>ALLOW_LOCAL_REPOS</code> on: <em>+ New product</em> → name <code>Workforce Optimization (WPO)</code> → path <code>~/Desktop/wpo-reference</code> (full path) → <em>Scan</em>.</li>
+  <li>Check: confirm the cards (the three writes need a look) → <em>Go live</em>.</li>
+</ol>
+<h4>6.2 Topology</h4>
+<ol class="steps"><li>The header reads 1 orchestrator · 5 agents · 11 MCP tools · 6 systems · 18 edges; each node and edge panel lists its sources; the forecast → <code>workday.absences</code> connection shows "Retry policy: unbounded".</li></ol>
+<h4>6.3 Traces (R18)</h4>
+<ol class="steps">
+  <li><em>Runtime plan</em> → <em>Generate plan</em>: built from the Compose file (15 services). Switch on <code>POST /roster/run</code> and <code>POST /copilot/ask</code>; approve; <em>Run in sandbox</em>.</li>
+  <li>After the run: every agent, tool and system lists "OTel traces" as a source; the run report shows no dependency missing from the graph.</li>
+</ol>
+<h4>6.4 What else the demo can show today</h4>
+<ol class="steps"><li>Journeys: the suggestion "supervisor → forecast_demand → optimize_roster → compliance → writeback", accepted as "Nightly roster generation" with the success wording "14 of 14 sites published by 05:00". Faults that apply on each connection (M2), e.g. rate limit on <code>workday.absences</code>.</li></ol>
+<div class="ac"><strong>Acceptance criteria</strong><ol>
+  <li>Topology in the console shows 1 · 5 · 11 · 6 · 18 with nothing configured by hand (no <code>navistorm.yaml</code>, no edits on Check apart from confirming).</li>
+  <li>After one sandbox run, every node lists "OTel traces"; every MCP tool lists "MCP tool manifest".</li>
+  <li>Every node and edge shows its sources in the console.</li>
+  <li>The run succeeds with both routes answering 200 and nothing missing from the graph.</li>
+</ol></div>
+</section>
+
+<!-- ============================================================ -->
+<h2 id="p7">14. Phase 7 · Demo script and hand-over</h2>
+<section class="phase">
+<div class="facts"><span><b>0.25 day</b></span></div>
+<h4>7.1 README.md</h4>
+<ol class="steps"><li>What it is and is not; the parts; how to run (<code>make up</code>, <code>make smoke</code>, <code>make test</code>); settings; the deliberate weaknesses W1–W3 and why they must stay; what NaviStorm should show; the decisions.</li></ol>
+<h4>7.2 DEMO.md</h4>
+<ol class="steps"><li>The click-by-click demo of Phase 6, in the style of the M1 and M2 test guides: what to click, what to type, what you should see, with screenshots taken from a real run.</li></ol>
+<h4>7.3 First commit</h4>
+<ol class="steps"><li>One commit in your name, with no secrets (checked) and no <code>.env</code>. Pushed to a remote only if you ask (WD1).</li></ol>
+<div class="ac"><strong>Acceptance criteria</strong><ol>
+  <li>A teammate can go from a clean checkout to the Topology screen by following README and DEMO.md alone.</li>
+  <li>The repo is committed; nothing secret is in it.</li>
+</ol></div>
+</section>
+
+<!-- ============================================================ -->
+<h2 id="exit">15. Exit criteria (all must hold)</h2>
+<div class="tw"><table>
+  <thead><tr><th>#</th><th>Criterion</th><th>Checked by</th></tr></thead>
+  <tbody>
+    <tr><td class="n">X1</td><td>Six stand-ins answer exactly as the brief's tables</td><td>Phase 1 tests</td></tr>
+    <tr><td class="n">X2</td><td>8 MCP servers, 11 tools; the three writes and only they marked <code>destructiveHint</code></td><td>Phase 2 tests</td></tr>
+    <tr><td class="n">X3</td><td>Agents reach systems only through MCP</td><td>Code test; no agent → system edge in the scan</td></tr>
+    <tr><td class="n">X4</td><td>Supervisor runs the four nodes in order, with the pass/fail edge; copilot is its own graph with its own entry and business hours</td><td>Phase 3 tests</td></tr>
+    <tr><td class="n">X5</td><td>Retry settings exactly as the brief; the unbounded retry marked "do not fix"</td><td>Phase 3 tests; NaviStorm reads them (Phase 5)</td></tr>
+    <tr><td class="n">X6</td><td><code>docker compose up</code> runs it all with one command and no keys</td><td><code>make smoke</code></td></tr>
+    <tr><td class="n">X7</td><td>NaviStorm draws 1 · 5 · 11 · 6 · 18 with nothing configured by hand</td><td>Phase 5 scan; Phase 6 console</td></tr>
+    <tr><td class="n">X8</td><td>Nodes classified from traces and MCP manifests; every item records its sources</td><td>Phase 6 after a sandbox run</td></tr>
+    <tr><td class="n">X9</td><td>No benchmarking, load or performance code</td><td>Review</td></tr>
+    <tr><td class="n">X10</td><td>README and DEMO.md let a teammate repeat the demo</td><td>A teammate follows them</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ============================================================ -->
+<h2 id="risks">16. Risks</h2>
+<div class="tw"><table>
+  <thead><tr><th>Risk</th><th>Effect</th><th>Mitigation</th></tr></thead>
+  <tbody>
+    <tr><td>The repo uses a pattern NaviStorm's scanner does not read</td><td>Counts differ on stage</td><td>Phase 5 runs before any demo; common patterns only; gaps fixed on their own NaviStorm branch</td></tr>
+    <tr><td>Test code adds nodes to the scan</td><td>Wrong counts</td><td>The tests rule; Phase 5 compares with and without <code>tests/</code></td></tr>
+    <tr><td>Library versions drift (LangGraph, MCP adapters move fast)</td><td>The repo stops starting</td><td>Exact pins in <code>requirements.txt</code>; the image digest pinned</td></tr>
+    <tr><td>The offline model adds a second model node</td><td>Count 2 instead of 1</td><td>One factory; checked in Phase 5 in both modes</td></tr>
+    <tr><td>Demo at an hour outside business hours</td><td>Copilot refuses on stage</td><td>Compose default "always open" (WD9); the hours are shown, not hit</td></tr>
+    <tr><td>Someone "fixes" the unbounded retry</td><td>The first demo loses its finding</td><td>The comment; a test that fails if the retry becomes bounded</td></tr>
+    <tr><td>The wireframe's queue and roster writes are expected on stage</td><td>Questions about missing edges</td><td>WD2 recorded in README: the brief chose MCP only; a later variant can add them</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ============================================================ -->
+<h2 id="notdoing">17. Not in this task</h2>
+<ul>
+  <li>Latency benchmarking, load generation, performance measurement (the brief).</li>
+  <li>Injecting faults: NaviStorm does that from M5. This repo only has to be breakable and drawable.</li>
+  <li>The Service Bus queue and roster writes of the journey wireframe (WD2).</li>
+  <li>A real WPO application: no real optimisation, no real rules engine, no UI of its own.</li>
+  <li>Pushing to GitHub or Azure DevOps, unless you ask (WD1).</li>
+</ul>
+
+<p class="small muted" style="margin-top:40px">Analysis based on: the team brief; <code>wireframes/</code> Main, Product, Journey, Experiment, Run, Findings, Interception and README; NaviStorm at <code>803bfac</code> (<code>backend/tests/fixtures/wpo-reference/</code>, <code>scanner/compose.py</code>, <code>runtime/compose_plan.py</code>, <code>graph.py</code> sources S8, <code>scanner/workspace.py</code>).</p>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,52 @@
+{
+  "_note": "What NaviStorm must draw when pointed at this repo, with nothing configured by hand (written by hand before the first scan). Edges: [kind, source, target, R/W or empty]. agent_level_edges are the 18 the Topology header counts; the compliance -> optimizer loop and the 9 tool -> system links are counted apart.",
+  "counts": {"orchestrators": 1, "agents": 5, "mcp_tools": 11, "systems": 6, "models": 1, "agent_level_edges": 18},
+  "orchestrator": "supervisor",
+  "stages": [["forecast_demand"], ["optimize_roster"], ["compliance"], ["writeback"]],
+  "agents": ["compliance", "forecast_demand", "manager_copilot", "optimize_roster", "writeback"],
+  "mcp_tools": ["cuopt.solve", "lms.training_currency", "mes.line_availability", "policy.rules", "roster.store",
+                "sap.production_plan", "sap.shift_confirm", "teams.notify", "workday.absences", "workday.schedules",
+                "workday.workers"],
+  "systems": ["Learning system", "MES", "Microsoft Teams", "NVIDIA cuOpt", "SAP S/4", "Workday"],
+  "model": {"provider": "Azure OpenAI", "model_id": "gpt-4o"},
+  "agent_level_edges": [
+    ["handoff", "supervisor", "forecast_demand", ""],
+    ["handoff", "forecast_demand", "optimize_roster", ""],
+    ["handoff", "optimize_roster", "compliance", ""],
+    ["handoff", "compliance", "writeback", ""],
+    ["calls", "forecast_demand", "sap.production_plan", ""],
+    ["calls", "forecast_demand", "mes.line_availability", ""],
+    ["calls", "forecast_demand", "workday.absences", ""],
+    ["calls", "optimize_roster", "workday.workers", ""],
+    ["calls", "optimize_roster", "lms.training_currency", ""],
+    ["calls", "optimize_roster", "cuopt.solve", ""],
+    ["calls", "compliance", "policy.rules", ""],
+    ["calls", "compliance", "lms.training_currency", ""],
+    ["calls", "writeback", "workday.schedules", ""],
+    ["calls", "writeback", "sap.shift_confirm", ""],
+    ["calls", "writeback", "teams.notify", ""],
+    ["calls", "manager_copilot", "roster.store", ""],
+    ["uses_model", "forecast_demand", "gpt-4o", ""],
+    ["uses_model", "manager_copilot", "gpt-4o", ""]
+  ],
+  "loops": [["handoff", "compliance", "optimize_roster", ""]],
+  "tool_system_edges": [
+    ["hits", "sap.production_plan", "SAP S/4", "R"],
+    ["hits", "sap.shift_confirm", "SAP S/4", "W"],
+    ["hits", "workday.absences", "Workday", "R"],
+    ["hits", "workday.workers", "Workday", "R"],
+    ["hits", "workday.schedules", "Workday", "W"],
+    ["hits", "mes.line_availability", "MES", "R"],
+    ["hits", "lms.training_currency", "Learning system", "R"],
+    ["hits", "cuopt.solve", "NVIDIA cuOpt", "R"],
+    ["hits", "teams.notify", "Microsoft Teams", "W"]
+  ],
+  "triggers": {"supervisor": ["POST /roster/run"], "manager_copilot": ["POST /copilot/ask"]},
+  "write_tools": ["sap.shift_confirm", "teams.notify", "workday.schedules"],
+  "retries": {
+    "forecast_demand": "unbounded, fixed delay, ignores Retry-After",
+    "optimize_roster": "2 retries (3 attempts), max 4 iterations",
+    "compliance": "no retry",
+    "writeback": "2 retries (3 attempts), on timeout"
+  }
+}

@@ -1,0 +1,198 @@
+[
+ {
+  "site": "site-01",
+  "line": "line-A",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-01",
+  "line": "line-B",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-02",
+  "line": "line-A",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-02",
+  "line": "line-B",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-03",
+  "line": "line-A",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-03",
+  "line": "line-B",
+  "status": "planned_maintenance",
+  "from": "2026-11-23T06:00:00Z",
+  "to": "2026-11-23T14:00:00Z"
+ },
+ {
+  "site": "site-04",
+  "line": "line-A",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-04",
+  "line": "line-B",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-05",
+  "line": "line-A",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-05",
+  "line": "line-B",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-06",
+  "line": "line-A",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-06",
+  "line": "line-B",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-07",
+  "line": "line-A",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-07",
+  "line": "line-B",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-08",
+  "line": "line-A",
+  "status": "planned_maintenance",
+  "from": "2026-11-23T06:00:00Z",
+  "to": "2026-11-23T14:00:00Z"
+ },
+ {
+  "site": "site-08",
+  "line": "line-B",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-09",
+  "line": "line-A",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-09",
+  "line": "line-B",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-10",
+  "line": "line-A",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-10",
+  "line": "line-B",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-11",
+  "line": "line-A",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-11",
+  "line": "line-B",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-12",
+  "line": "line-A",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-12",
+  "line": "line-B",
+  "status": "planned_maintenance",
+  "from": "2026-11-23T06:00:00Z",
+  "to": "2026-11-23T14:00:00Z"
+ },
+ {
+  "site": "site-13",
+  "line": "line-A",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-13",
+  "line": "line-B",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-14",
+  "line": "line-A",
+  "status": "running",
+  "from": null,
+  "to": null
+ },
+ {
+  "site": "site-14",
+  "line": "line-B",
+  "status": "running",
+  "from": null,
+  "to": null
+ }
+]

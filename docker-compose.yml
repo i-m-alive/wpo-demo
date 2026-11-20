@@ -1,0 +1,131 @@
+# wpo-reference: six stand-in systems, one MCP server in front of each (plus policy and roster), and the agents.
+# Nothing here talks to a real system. One image (Dockerfile) for all 15 services; only the agents are published.
+#   docker compose up --build      then   curl -X POST localhost:8080/roster/run -H 'content-type: application/json' -d '{}'
+services:
+  stub-sap:
+    build: .
+    image: wpo-reference:local
+    command: uvicorn stubs.stub_sap:app --host 0.0.0.0 --port 8000
+    healthcheck: {test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+  stub-workday:
+    build: .
+    image: wpo-reference:local
+    command: uvicorn stubs.stub_workday:app --host 0.0.0.0 --port 8000
+    healthcheck: {test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+  stub-mes:
+    build: .
+    image: wpo-reference:local
+    command: uvicorn stubs.stub_mes:app --host 0.0.0.0 --port 8000
+    healthcheck: {test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+  stub-lms:
+    build: .
+    image: wpo-reference:local
+    command: uvicorn stubs.stub_lms:app --host 0.0.0.0 --port 8000
+    healthcheck: {test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+  stub-cuopt:
+    build: .
+    image: wpo-reference:local
+    command: uvicorn stubs.stub_cuopt:app --host 0.0.0.0 --port 8000
+    healthcheck: {test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+  stub-teams:
+    build: .
+    image: wpo-reference:local
+    command: uvicorn stubs.stub_teams:app --host 0.0.0.0 --port 8000
+    healthcheck: {test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+
+  mcp-sap:
+    build: .
+    image: wpo-reference:local
+    command: python -m mcp_servers.sap_server
+    environment:
+      SAP_URL: http://stub-sap:8000
+    healthcheck: {test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 9000), 2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+    depends_on:
+      stub-sap: {condition: service_healthy}
+  mcp-workday:
+    build: .
+    image: wpo-reference:local
+    command: python -m mcp_servers.workday_server
+    environment:
+      WORKDAY_URL: http://stub-workday:8000
+    healthcheck: {test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 9000), 2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+    depends_on:
+      stub-workday: {condition: service_healthy}
+  mcp-mes:
+    build: .
+    image: wpo-reference:local
+    command: python -m mcp_servers.mes_server
+    environment:
+      MES_URL: http://stub-mes:8000
+    healthcheck: {test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 9000), 2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+    depends_on:
+      stub-mes: {condition: service_healthy}
+  mcp-lms:
+    build: .
+    image: wpo-reference:local
+    command: python -m mcp_servers.lms_server
+    environment:
+      LMS_URL: http://stub-lms:8000
+    healthcheck: {test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 9000), 2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+    depends_on:
+      stub-lms: {condition: service_healthy}
+  mcp-cuopt:
+    build: .
+    image: wpo-reference:local
+    command: python -m mcp_servers.cuopt_server
+    environment:
+      CUOPT_URL: http://stub-cuopt:8000
+    healthcheck: {test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 9000), 2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+    depends_on:
+      stub-cuopt: {condition: service_healthy}
+  mcp-teams:
+    build: .
+    image: wpo-reference:local
+    command: python -m mcp_servers.teams_server
+    environment:
+      TEAMS_URL: http://stub-teams:8000
+    healthcheck: {test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 9000), 2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+    depends_on:
+      stub-teams: {condition: service_healthy}
+  mcp-policy:
+    build: .
+    image: wpo-reference:local
+    command: python -m mcp_servers.policy_server
+    healthcheck: {test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 9000), 2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+  mcp-roster:
+    build: .
+    image: wpo-reference:local
+    command: python -m mcp_servers.roster_server
+    healthcheck: {test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 9000), 2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+
+  agents:
+    build: .
+    image: wpo-reference:local
+    command: uvicorn agents.main:app --host 0.0.0.0 --port 8080
+    ports: ["${AGENTS_PORT:-8080}:8080"]
+    environment:
+      WPO_LLM: ${WPO_LLM:-auto}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-gpt-4o}
+      COPILOT_HOURS: ${COPILOT_HOURS:-00:00-24:00}
+      COPILOT_TZ: ${COPILOT_TZ:-Europe/London}
+      WPO_FORCE_COMPLIANCE_FAIL: ${WPO_FORCE_COMPLIANCE_FAIL:-0}
+      SAP_MCP_URL: http://mcp-sap:9000/mcp
+      WORKDAY_MCP_URL: http://mcp-workday:9000/mcp
+      MES_MCP_URL: http://mcp-mes:9000/mcp
+      LMS_MCP_URL: http://mcp-lms:9000/mcp
+      CUOPT_MCP_URL: http://mcp-cuopt:9000/mcp
+      TEAMS_MCP_URL: http://mcp-teams:9000/mcp
+      POLICY_MCP_URL: http://mcp-policy:9000/mcp
+      ROSTER_MCP_URL: http://mcp-roster:9000/mcp
+    healthcheck: {test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz', timeout=2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+    depends_on:
+      mcp-sap: {condition: service_healthy}
+      mcp-workday: {condition: service_healthy}
+      mcp-mes: {condition: service_healthy}
+      mcp-lms: {condition: service_healthy}
+      mcp-cuopt: {condition: service_healthy}
+      mcp-teams: {condition: service_healthy}
+      mcp-policy: {condition: service_healthy}
+      mcp-roster: {condition: service_healthy}
