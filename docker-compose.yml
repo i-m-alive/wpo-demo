@@ -102,7 +102,7 @@ services:
     build: .
     image: wpo-reference:local
     command: uvicorn agents.main:app --host 0.0.0.0 --port 8080
-    ports: ["${AGENTS_PORT:-8080}:8080"]
+    ports: ["127.0.0.1:${AGENTS_PORT:-8080}:8080"]  # this machine only
     environment:
       WPO_LLM: ${WPO_LLM:-auto}
       AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}

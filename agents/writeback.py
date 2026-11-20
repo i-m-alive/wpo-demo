@@ -13,8 +13,12 @@ def timed_out(exc: Exception) -> bool:
 
 
 async def writeback(state: dict) -> dict:
+    if not state.get("sites"):
+        return {"published": False}  # nothing to publish (e.g. a site that is not in the production plan)
     tools = await tools_named("workday.schedules", "sap.shift_confirm", "teams.notify")
     roster = state.get("roster", {})
+    # Deliberate weakness W4 (see README): a timeout on any one write repeats all of them, so writes that already
+    # succeeded are sent again (duplicate schedules and shift confirmations). Leave it as it is.
     for _ in range(3):
         try:
             await tools["schedules"].ainvoke({"roster": roster})

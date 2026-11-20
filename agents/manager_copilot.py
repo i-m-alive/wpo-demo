@@ -10,7 +10,7 @@ from langgraph.graph import END, START, StateGraph
 from .llm import llm
 from .mcp_client import data, tools_named
 
-SITE = re.compile(r"site-\d{2}")
+SITE = re.compile(r"\bsite-\d{2}\b")
 
 
 class CopilotState(TypedDict, total=False):
@@ -29,7 +29,9 @@ def describe(roster: dict) -> str:
 
 
 async def manager_copilot(state: CopilotState) -> CopilotState:
-    site = state.get("site") or next(iter(SITE.findall(state.get("question", ""))), "site-01")
+    site = state.get("site") or next(iter(SITE.findall(state.get("question", ""))), "")
+    if not site:
+        return {"site": "", "answer": "Which site do you mean? Ask about one of site-01 to site-14."}
     tools = await tools_named("roster.store")
     roster = data(await tools["store"].ainvoke({"site": site}))
     reply = await llm.ainvoke(f"Answer the line manager's question: {state.get('question', '')}\nDRAFT: {describe(roster)}")

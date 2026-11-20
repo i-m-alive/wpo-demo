@@ -17,6 +17,7 @@ class RosterState(TypedDict, total=False):
     demand: dict
     forecast_note: str
     roster: dict
+    hours: dict
     solver_status: str
     compliant: bool
     breaches: list[str]

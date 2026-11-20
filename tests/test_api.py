@@ -38,3 +38,20 @@ def test_copilot_open_and_closed(api, monkeypatch):
     r = api.post("/copilot/ask", json={"question": "Who is on shift?"})
     assert r.status_code == 423 and "The copilot answers between" in r.json()["detail"]["message"]
     assert api.post("/copilot/ask", json={"question": "x"}).status_code == 422
+
+
+def test_a_site_not_in_the_plan_is_404(api):
+    r = api.post("/roster/run", json={"site": "site-99"})
+    assert r.status_code == 404 and r.json()["detail"]["message"] == "site-99 is not in the production plan."
+
+
+def test_a_failing_system_is_a_clear_502(monkeypatch):
+    from langchain_core.tools import ToolException
+
+    from .fakes import FakeTool
+    tools = canned()
+    tools["notify"] = FakeTool("notify", {}, fail=[ToolException("Microsoft Teams could not be reached (ConnectError)")])
+    patch_tools(monkeypatch, tools)
+    r = TestClient(app).post("/roster/run", json={"site": "site-01"})
+    assert r.status_code == 502
+    assert r.json()["detail"] == {"error": "system_failed", "message": "Microsoft Teams could not be reached (ConnectError)"}

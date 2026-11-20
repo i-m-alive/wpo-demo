@@ -37,7 +37,10 @@ def chat_model() -> BaseChatModel:
     if mode == "azure" and not configured:
         raise RuntimeError("WPO_LLM=azure needs AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY")
     if mode == "azure" or (mode == "auto" and configured):
-        return AzureChatOpenAI(azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4o"), api_version="2024-10-21")
+        # max_retries=0: the OpenAI client would otherwise retry twice by itself and honour Retry-After, hiding the
+        # forecast agent's own retry behaviour (W1) that the demo is about.
+        return AzureChatOpenAI(azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4o"), api_version="2024-10-21",
+                               max_retries=0)
     return OfflineAnswers()
 
 

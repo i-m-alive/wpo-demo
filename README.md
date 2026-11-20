@@ -9,7 +9,8 @@ fault-injection tool; this repo is the system it injects faults into. **Nothing 
 - LangGraph agents that reach those systems **only through MCP**: a supervisor graph running
   `forecast_demand → optimize_roster → compliance → writeback` (compliance "fail" loops back to the optimizer), and
   `manager_copilot`, a separate graph with its own entry point and business hours.
-- One Docker image, one Compose file: `make up` starts all 15 services. Only the agents (port 8080) are published.
+- One Docker image, one Compose file: `make up` starts all 15 services. Only the agents (port 8080) are published, and
+  only on this machine (127.0.0.1).
 
 No latency benchmarking, no load generation, no performance measurement: that is not this repo's job.
 
@@ -17,7 +18,7 @@ No latency benchmarking, no load generation, no performance measurement: that is
 
 ```bash
 python3.12 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
-make test     # 62 unit and API tests: no Docker, no network, no keys
+make test     # 83 unit and API tests: no Docker, no network, no keys
 make up       # builds and starts everything; agents on http://localhost:8080
 curl -X POST localhost:8080/roster/run  -H 'content-type: application/json' -d '{}'
 curl -X POST localhost:8080/copilot/ask -H 'content-type: application/json' -d '{"question":"Who is on shift at site-04?"}'
@@ -26,7 +27,12 @@ make smoke    # all of the above in one go, checked, on port 18080, cleaned up a
 ```
 
 `POST /roster/run` takes `{}` for all 14 sites or `{"site": "site-07"}` for one, and answers how many sites were
-rostered, whether the roster was published, how many compliance rounds it took, and the forecast in words.
+rostered, whether the roster was published, how many compliance rounds it took, and the forecast in words. A site that
+is not in the production plan answers 404; a system that fails in a way the agents do not retry (e.g. Teams refusing a
+notification) answers 502 with the system named. The copilot asks "Which site do you mean?" when the question names none.
+
+Every failure of a stand-in or an MCP server reaches the agents as an error (`agents/mcp_client.py`), so their retry
+rules apply: forecast_demand retries it forever (W1), writeback retries timeouts.
 
 ## What is in it
 
@@ -60,6 +66,7 @@ They are what the NaviStorm demos find. Each is marked in the code.
 | W1 | `agents/forecast_demand.py` | Retries forever after the same 1 s wait and never reads Retry-After. Under a Workday throttle (HTTP 429) it multiplies the calls to Workday. The demo's recommended fix: honour Retry-After, cap at 3 attempts, add jitter |
 | W2 | `agents/optimize_roster.py` | One solve for all 14 sites, so the optimizer waits for every forecast: one slow site holds up all of them |
 | W3 | `agents/manager_copilot.py`, `mcp_servers/roster_server.py` | The copilot answers from the last published roster without saying how old it is: after a bad night, managers get yesterday's roster as if it were today's |
+| W4 | `agents/writeback.py` | A timeout on any one write repeats all of them, so writes that already succeeded are sent again (duplicate schedules and shift confirmations: the "duplicate write" fault on the journey wireframe) |
 
 ## Settings (`.env`, see `.env.example`)
 
@@ -84,8 +91,10 @@ Check it without the console:
 NAVISTORM_BACKEND=~/Desktop/NaviStorm/backend ~/Desktop/NaviStorm/backend/.venv/bin/python scripts/check_topology.py
 ```
 
-**NaviStorm version needed.** Building this repo found two NaviStorm gaps, fixed on NaviStorm branch
-`wporef-scanner-n1` (commits `a3d8542`, `3cb5a00`, on top of `m2-faults`):
+**NaviStorm version needed: branch `wpo-demo`** (`m4-experiments` plus the fixes below). Check the checkout you run:
+`git merge-base --is-ancestor 3cb5a00 HEAD && echo "fixes present"`. With `CHAOS_ENABLED=0` its console shows only
+onboarding, topology and the sandbox, like `main`; `main` itself cannot read this repo. Building this repo found two
+NaviStorm gaps (commits `a3d8542` and `3cb5a00`, narrowed after code review in `466771c`):
 
 1. A LangGraph node defined in its own module and calling the model through a helper was also listed as a file
    NaviStorm "could not read".

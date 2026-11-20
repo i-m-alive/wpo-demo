@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wpo-reference Test Plan</title>
+<style>
+  :root {
+    --bg:#ffffff; --fg:#1f2328; --muted:#59636e; --border:#d1d9e0; --head:#f6f8fa; --code:#eff1f3; --accent:#0969da;
+    --card:#ffffff; --soft:#f6f8fa;
+    --ok:#1a7f37; --ok-bg:#dafbe1; --warn:#9a6700; --warn-bg:#fff8c5; --bad:#cf222e; --bad-bg:#ffebe9;
+    --you:#8250df; --you-bg:#fbefff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --border:#3d444d; --head:#151b23; --code:#262c36; --accent:#4493f8;
+      --card:#151b23; --soft:#161b22;
+      --ok:#7ee787; --ok-bg:#0f3320; --warn:#e3b341; --warn-bg:#3b2e05; --bad:#ff7b72; --bad-bg:#4a1418;
+      --you:#d2a8ff; --you-bg:#2f1c4a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --border:#3d444d; --head:#151b23; --code:#262c36; --accent:#4493f8;
+    --card:#151b23; --soft:#161b22;
+    --ok:#7ee787; --ok-bg:#0f3320; --warn:#e3b341; --warn-bg:#3b2e05; --bad:#ff7b72; --bad-bg:#4a1418;
+    --you:#d2a8ff; --you-bg:#2f1c4a;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  main { max-width:1020px; margin:0 auto; padding:32px 16px 80px; }
+  h1 { font-size:1.9em; line-height:1.25; margin:0 0 8px; }
+  h1 + p { color:var(--muted); margin-top:0; }
+  h2 { font-size:1.4em; margin:48px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--border); scroll-margin-top:12px; }
+  h3 { font-size:1.1em; margin:24px 0 8px; scroll-margin-top:12px; }
+  h4 { font-size:1em; margin:16px 0 6px; }
+  a { color:var(--accent); }
+  p, li { max-width:80ch; }
+  code { background:var(--code); padding:1px 5px; border-radius:4px; font:0.86em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre { background:var(--code); padding:12px 14px; border-radius:8px; overflow-x:auto; font:0.83em/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre code { background:none; padding:0; }
+  .tw { overflow-x:auto; margin:10px 0 18px; }
+  table { width:100%; border-collapse:collapse; min-width:620px; font-size:0.93em; }
+  th, td { border:1px solid var(--border); padding:6px 9px; text-align:left; vertical-align:top; }
+  th { background:var(--head); }
+  td.n { white-space:nowrap; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .muted { color:var(--muted); } .small { font-size:0.9em; }
+  nav.toc { background:var(--soft); border:1px solid var(--border); border-radius:10px; padding:14px 18px; margin:20px 0 8px; }
+  nav.toc ol { margin:6px 0 0; padding-left:22px; columns:2; column-gap:32px; } @media (max-width:640px) { nav.toc ol { columns:1; } }
+  .tldr { border-left:4px solid var(--accent); background:var(--soft); padding:12px 16px; border-radius:0 8px 8px 0; margin:16px 0; }
+  .tldr p { margin:6px 0; }
+  .note { border:1px solid var(--border); border-radius:8px; padding:10px 14px; margin:14px 0; background:var(--soft); }
+  .warnbox { border:1px solid var(--warn); background:var(--warn-bg); border-radius:8px; padding:10px 14px; margin:14px 0; }
+  .badbox { border:1px solid var(--bad); background:var(--bad-bg); border-radius:8px; padding:10px 14px; margin:14px 0; }
+  .tag { display:inline-block; font-size:0.78em; font-weight:600; padding:1px 8px; border-radius:999px; white-space:nowrap; vertical-align:1px; }
+  .you { color:var(--you); background:var(--you-bg); }
+  .dev { color:var(--accent); background:var(--soft); border:1px solid var(--border); }
+  .phase { border:1px solid var(--border); border-left:5px solid var(--accent); border-radius:10px; padding:4px 18px 12px; margin:22px 0; background:var(--card); }
+  .facts { display:flex; flex-wrap:wrap; gap:6px 14px; font-size:0.9em; color:var(--muted); margin:-2px 0 8px; }
+  .facts b { color:var(--fg); font-weight:600; }
+  .ac { border:1px solid var(--ok); background:var(--ok-bg); border-radius:8px; padding:8px 14px; margin:12px 0; }
+  .ac > strong { color:var(--ok); }
+  .ac ol { margin:4px 0; padding-left:22px; } .ac li { margin:3px 0; }
+  .flow { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:14px 0; }
+  .flow span.box { border:1px solid var(--border); border-radius:8px; padding:6px 10px; background:var(--card); font-size:0.9em; }
+  .flow span.arr { color:var(--muted); }
+  ol.steps > li { margin:6px 0; }
+  td.ok, .ok { color:var(--ok); font-weight:600; }
+  .k { display:inline-block; font-weight:600; padding:0 7px; border-radius:5px; border:1px solid var(--you); color:var(--you); background:var(--you-bg); font-size:0.9em; white-space:nowrap; }
+  .t { display:inline-block; padding:0 6px; border-radius:5px; background:var(--code); font:0.86em ui-monospace, SFMono-Regular, Menlo, monospace; border:1px dashed var(--muted); }
+  .legend span { margin-right:14px; }
+  .box { display:inline-block; width:14px; height:14px; border:1.5px solid var(--muted); border-radius:3px; vertical-align:-2px; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>wpo-reference: test plan</h1>
+<p>20 Nov 2026 · A step-by-step check that what the team email asked for is met, done by hand. <strong>Part 1</strong> checks the WPO project on its own (email tasks 1 and 2). <strong>Part 2</strong> checks it in the NaviStorm console (email task 3). Every step says what to do, and what you should see. Background: <a href="Audit.html">audit</a>, <a href="../DEMO.md">DEMO.md</a>.</p>
+
+<p class="legend small"><span><span class="k">Button</span> something to click</span><span><span class="t">text</span> something to type</span><span class="ok">✓</span> what you should see</p>
+
+<div class="tldr">
+  <p><strong>What "done" means: the email's expectations, numbered.</strong> Each step below proves one or more of these. The record table at the end ticks them off.</p>
+  <ol>
+    <li value="1"><b>E1</b> Six stand-in systems answer exactly as the email's table.</li>
+    <li><b>E2</b> Each stand-in sits behind an MCP server; the write tools are marked <code>destructiveHint: true</code>.</li>
+    <li><b>E3</b> Agents never call a stand-in directly, only through MCP.</li>
+    <li><b>E4</b> A LangGraph supervisor runs nodes 1–4 in order; compliance "pass" goes to writeback, "fail" back to the optimizer.</li>
+    <li><b>E5</b> manager_copilot is a separate graph with its own entry point and business hours.</li>
+    <li><b>E6</b> Retry settings exactly as the email; the unbounded retry is marked so nobody fixes it.</li>
+    <li><b>E7</b> NaviStorm draws <b>1 orchestrator, 5 agents, 11 MCP tools, 6 systems, 18 edges</b>, with nothing configured by hand.</li>
+    <li><b>E8</b> Each node is classified from traces and MCP manifests.</li>
+    <li><b>E9</b> Each node and edge records which source classified it.</li>
+    <li><b>E10</b> No benchmarking, load generation or performance measurement.</li>
+  </ol>
+</div>
+
+<nav class="toc" aria-label="Contents"><strong>Contents</strong><ol>
+  <li><a href="#setup">Set up (once)</a></li>
+  <li><a href="#p1">Part 1 · The project on its own (T1–T8)</a></li>
+  <li><a href="#p2">Part 2 · NaviStorm (T9–T20)</a></li>
+  <li><a href="#trouble">If something does not match</a></li>
+  <li><a href="#record">Test record</a></li>
+  <li><a href="#cleanup">Clean up</a></li>
+</ol></nav>
+
+<!-- ============================================================ -->
+<h2 id="setup">1. Set up (once)</h2>
+
+<h3>S1 · NaviStorm on the right branch</h3>
+<p>Use branch <code>wpo-demo</code>: <code>m4-experiments</code> plus the two scanner fixes this project needed. On older branches, and on <code>main</code>, task 3 cannot pass (the audit explains why).</p>
+<pre><code>cd ~/Desktop/NaviStorm
+git status                      # should say "nothing to commit"; if not, commit or set your changes aside first
+git checkout wpo-demo
+git log --oneline -1            # 466771c Scanner: drop only the "LLM through a helper" note …
+git merge-base --is-ancestor 3cb5a00 HEAD &amp;&amp; echo "fixes present"   # must print "fixes present"</code></pre>
+
+<h3>S2 · NaviStorm settings (<code>backend/.env</code>, each on a line of its own, no comment after the value)</h3>
+<div class="tw"><table><thead><tr><th>Line</th><th>Why</th></tr></thead><tbody>
+<tr><td><code>CHAOS_ENABLED=0</code></td><td>Hides the M0–M4 screens (Journeys, Fault library, Experiments …): the console shows only onboarding, topology and the sandbox, like <code>main</code>. Use <code>1</code> if you also want to show those</td></tr>
+<tr><td><code>RUNTIME_RUNNER=docker</code></td><td>Sandbox runs (needed for "OTel traces")</td></tr>
+<tr><td><code>ALLOW_LOCAL_REPOS=true</code></td><td>Only if you add the project by its folder path instead of a GitHub link</td></tr>
+</tbody></table></div>
+<p class="small">Your database is already at the version this branch needs (migration 0008); nothing to migrate. For a clean demo you can point <code>DATABASE_URL</code> at a new file instead (e.g. <code>sqlite:///./navistorm-demo.db</code>): NaviStorm creates it on start.</p>
+
+<h3>S3 · Start everything</h3>
+<ol>
+  <li>Docker Desktop running: <code>docker info</code> prints server details.</li>
+  <li>NaviStorm API: <code>cd ~/Desktop/NaviStorm/backend &amp;&amp; .venv/bin/uvicorn navistorm.main:app --port 8765</code> <span class="ok">✓ "Application startup complete"</span></li>
+  <li>NaviStorm console: <code>cd ~/Desktop/NaviStorm/frontend &amp;&amp; npm run dev</code>, open the address it prints, press <strong>Cmd+Shift+R</strong>, sign in (developer sign-in: tick every role).</li>
+  <li class="ok">✓ With <code>CHAOS_ENABLED=0</code>: the left menu has no "Resilience" group and no "Journeys", but has "Runtime plan" and "Sandbox runs".</li>
+</ol>
+
+<h3>S4 · The project</h3>
+<pre><code>cd ~/Desktop/wpo-reference
+python3.12 -m venv .venv &amp;&amp; .venv/bin/pip install -r requirements-dev.txt     # once</code></pre>
+<p>For Part 2, choose how NaviStorm will read it:</p>
+<div class="tw"><table><thead><tr><th>Option</th><th>Use in step T9</th><th>Needs</th></tr></thead><tbody>
+<tr><td><b>A · GitHub link</b> (closest to the real thing)</td><td><span class="t">https://github.com/&lt;account&gt;/wpo-reference</span></td><td>The project pushed to GitHub. A public repo works with the link alone; a private one needs NaviStorm's GitHub App installed on that account (Settings › Code connections)</td></tr>
+<tr><td><b>B · Folder path</b></td><td>the output of <code>pwd</code> in the project folder</td><td><code>ALLOW_LOCAL_REPOS=true</code></td></tr>
+</tbody></table></div>
+
+<!-- ============================================================ -->
+<h2 id="p1">2. Part 1 · The project on its own (email tasks 1 and 2)</h2>
+<p>All commands run in <code>~/Desktop/wpo-reference</code>.</p>
+<div class="tw"><table><thead><tr><th>#</th><th>Do</th><th>You should see</th><th>Proves</th></tr></thead><tbody>
+<tr><td class="n">T1</td><td><code>make test</code></td><td class="ok">✓ <code>83 passed</code> in about a second (no Docker, network or keys needed)</td><td>E1–E6</td></tr>
+<tr><td class="n">T2</td><td><code>make up</code></td><td class="ok">✓ After about a minute, no errors; <code>docker compose ps</code> lists 15 services, all "healthy": six <code>stub-*</code>, eight <code>mcp-*</code>, <code>agents</code></td><td>E1</td></tr>
+<tr><td class="n">T3</td><td>Ask each stand-in directly, from inside the Docker network (the stand-ins cannot be reached from your machine, on purpose):<br>
+<code>docker compose exec agents python -c "import httpx as h; print(h.get('http://stub-sap:8000/production_plan').json()); print(h.post('http://stub-sap:8000/shift_confirm', json={}).json()); print(len(h.get('http://stub-workday:8000/absences').json()), len(h.get('http://stub-workday:8000/workers').json()), h.post('http://stub-workday:8000/schedules', json={}).json()); print(len(h.get('http://stub-mes:8000/line_availability').json()), len(h.get('http://stub-lms:8000/training_currency').json())); print(h.post('http://stub-cuopt:8000/solve', json={}).json(), h.post('http://stub-teams:8000/notify', json={}).json())"</code></td>
+  <td class="ok">✓ Five lines:<br><code>['site-01', … 'site-14']</code> (14 ids)<br><code>{'status': 'ok'}</code><br><code>12 56 {'status': 'ok'}</code><br><code>28 84</code><br><code>{'status': 'OK', 'roster': {}} {'status': 'ok'}</code></td><td>E1</td></tr>
+<tr><td class="n">T4</td><td>List every MCP tool and its write mark:<br><code>docker compose exec agents python -c "import asyncio; from agents.mcp_client import client; ts = asyncio.run(client.get_tools()); [print(t.name, 'WRITE' if (t.metadata or {}).get('destructiveHint') else 'read') for t in ts]; print(len(ts), 'tools')"</code></td>
+  <td class="ok">✓ 11 lines then <code>11 tools</code>; exactly <code>shift_confirm</code>, <code>schedules</code> and <code>notify</code> say WRITE, the other eight say read</td><td>E2</td></tr>
+<tr><td class="n">T5</td><td>The nightly roster:<br><code>curl -X POST localhost:8080/roster/run -H 'content-type: application/json' -d '{}'</code></td><td class="ok">✓ <code>"sites":14,"published":true,"compliant":true,"rounds":1</code> and the forecast in words ("Demand site-01: 4 shifts on line-A, line-B, 1 absent; …")</td><td>E3, E4</td></tr>
+<tr><td class="n">T6</td><td>The copilot:<br><code>curl -X POST localhost:8080/copilot/ask -H 'content-type: application/json' -d '{"question":"Who is on shift at site-04?"}'</code></td><td class="ok">✓ <code>"On site-04 the roster is: early shift on line-A: w013, w014; late shift on line-B: w015, w016."</code></td><td>E5</td></tr>
+<tr><td class="n">T7</td><td>Business hours and the compliance loop: <code>make down</code>, then<br><code>COPILOT_HOURS=03:00-04:00 WPO_FORCE_COMPLIANCE_FAIL=1 make up</code>, then T5 and T6 again (pick hours that are <em>not</em> now)</td><td class="ok">✓ T5: <code>"published":false,"rounds":3</code> with the breach "forced by WPO_FORCE_COMPLIANCE_FAIL" (fail went back to the optimizer 3 times)<br>✓ T6: HTTP 423, "The copilot answers between 03:00 and 04:00 (Europe/London)."</td><td>E4, E5</td></tr>
+<tr><td class="n">T7b</td><td>The deliberate retry (W1), live: <code>make down</code>, <code>make up</code>, then<br><code>docker compose stop stub-workday</code><br>start the roster in a second terminal: <code>curl -X POST localhost:8080/roster/run -H 'content-type: application/json' -d '{"site":"site-02"}'</code> (it waits)<br>after about 10 s: <code>docker compose logs --since 30s mcp-workday | grep -c "POST /mcp"</code><br>then <code>docker compose start stub-workday</code></td>
+  <td class="ok">✓ While Workday is down the roster call does not fail: it waits. The log count is high (dozens of calls in 10 s: the forecast agent retrying every second, ignoring Retry-After). Once Workday is back, the call finishes with <code>"published":true</code></td><td>E6</td></tr>
+<tr><td class="n">T8</td><td><code>make down</code>, then read the code for the parts the email names:<br>· <code>agents/forecast_demand.py</code>: the <code>DELIBERATE DEFECT W1 - DO NOT FIX</code> block, <code>while True</code>, <code>FIXED_DELAY_S = 1</code>, no Retry-After<br>· <code>agents/optimize_roster.py</code>: <code>MAX_RETRIES = 2</code>, <code>MAX_ITER = 4</code><br>· <code>agents/compliance.py</code>: no retry; <code>agents/supervisor.py</code>: the pass/fail edge<br>· <code>agents/writeback.py</code>: <code>range(3)</code>, retry on a timeout (and the W4 note: a retry re-sends every write)<br>· <code>agents/</code>: no <code>stub-</code> address anywhere (<code>grep -r "stub-" agents/</code> prints nothing)<br>· the repo: no benchmarking or load scripts</td><td class="ok">✓ As listed</td><td>E3, E6, E10</td></tr>
+</tbody></table></div>
+<p class="small">One command does T2, T5, T6 and the clean-up together, with checks: <code>make smoke</code> <span class="ok">✓ "smoke test passed"</span>.</p>
+
+<!-- ============================================================ -->
+<h2 id="p2">3. Part 2 · NaviStorm (email task 3)</h2>
+
+<h3>Add the project (nothing configured by hand)</h3>
+<div class="tw"><table><thead><tr><th>#</th><th>Do</th><th>You should see</th><th>Proves</th></tr></thead><tbody>
+<tr><td class="n">T9</td><td><span class="k">Products</span> → <span class="k">+ New product</span>; <em>Product name</em> <span class="t">Workforce Optimization (WPO)</span>; <em>Repo URL or path</em>: the GitHub link (option A) or the folder path (option B)</td><td class="ok">✓ "✓ NaviStorm can read it"; for GitHub a branch picker (choose <code>main</code>); for a folder "Folder on this machine"</td><td>E7</td></tr>
+<tr><td class="n">T10</td><td><span class="k">Scan</span></td><td class="ok">✓ "Scan complete", then the Check page. No "files NaviStorm could not read" note</td><td>E7</td></tr>
+<tr><td class="n">T11</td><td>Check: <span class="k">Confirm all (n)</span> (or <span class="k">Confirm</span> each card; the three writes are <code>sap.shift_confirm</code>, <code>workday.schedules</code>, <code>teams.notify</code>) → <span class="k">Go live</span></td><td class="ok">✓ "… is live", graph v1</td><td>E7</td></tr>
+</tbody></table></div>
+
+<h3>The topology (screens <code>01-topology.png</code>, <code>05-topology-chaos-off.png</code>)</h3>
+<div class="tw"><table><thead><tr><th>#</th><th>Do / look at</th><th>You should see</th><th>Proves</th></tr></thead><tbody>
+<tr><td class="n">T12</td><td><span class="k">Topology</span>: the line under the title</td><td class="ok">✓ "From … MCP tool manifests, vendor fingerprints, Docker Compose and code · published graph v1 · … · <b>1 orchestrator, 5 agents, 11 MCP tools, 6 systems, 18 edges</b>"; below it "Also: 1 loop back to an earlier agent and 9 tool-to-system links"</td><td>E7, E9</td></tr>
+<tr><td class="n">T13</td><td>The orchestrator strip above the columns</td><td class="ok">✓ "Orchestrator · supervisor (LangGraph) · runs forecast_demand → optimize_roster → compliance → writeback · loops back: compliance → optimize_roster when "fail" · started by POST /roster/run"</td><td>E4, E7</td></tr>
+<tr><td class="n">T14</td><td>The three columns; count them</td><td class="ok">✓ Agents (5): forecast_demand (stage 1), optimize_roster (2), compliance (3), writeback (4), manager_copilot (no stage). Tools: "11 MCP tools used by agents", grouped Workday 3, Sap 2, Cuopt 1, Lms 1, Mes 1, Policy 1, Roster 1, Teams 1. Systems (6): NVIDIA cuOpt, Learning system, MES, SAP S/4, Microsoft Teams, Workday</td><td>E7</td></tr>
+<tr><td class="n">T15</td><td><span class="k">List every edge</span></td><td class="ok">✓ 28 rows: the 18 agent-level edges (4 hand-offs, 12 tool calls, 2 model calls), the loop, and 9 tool → system links. Writes marked W on <code>sap.shift_confirm → SAP S/4</code>, <code>workday.schedules → Workday</code>, <code>teams.notify → Microsoft Teams</code></td><td>E7</td></tr>
+<tr><td class="n">T16</td><td>Back on Topology, open <span class="k">How this graph was found</span></td><td class="ok">✓ The sources and how many nodes and edges each classified: MCP tool manifest, Vendor fingerprint, Docker Compose, Code (before any sandbox run)</td><td>E9</td></tr>
+<tr><td class="n">T17</td><td>Click, one at a time, and open <span class="k">Classified by</span> on each:<br>· the <b>Absences</b> tool (in the Workday group)<br>· the system <b>Workday</b><br>· the agent <b>forecast_demand</b><br>· the edge <code>forecast_demand → workday.absences</code> (click the agent, then the edge)</td><td class="ok">✓ Tool: "MCP tool manifest · tool annotations in the server's code"<br>✓ System: "Vendor fingerprint · named from the …" and "Docker Compose"<br>✓ Agent: "Code · LangGraph"<br>✓ Edge: "Code"; and <em>Retry policy</em> <b>unbounded</b>, "Retry: unbounded · fixed 1 s · ignores Retry-After … (read from agents/forecast_demand.py)"</td><td>E6, E8, E9</td></tr>
+</tbody></table></div>
+
+<h3>Traces: one sandbox run (screen <code>04-runtime-plan.png</code>)</h3>
+<div class="tw"><table><thead><tr><th>#</th><th>Do</th><th>You should see</th><th>Proves</th></tr></thead><tbody>
+<tr><td class="n">T18</td><td><span class="k">Runtime plan</span> → <span class="k">Generate plan</span></td><td class="ok">✓ "Built from docker-compose.yml: 15 service(s) …"; the 15 services by name; Azure OpenAI answered by NaviStorm's LLM stub (no keys to enter)</td><td>E8</td></tr>
+<tr><td class="n">T19</td><td>Section <em>5 · Traffic scenarios</em>: tick <b>On</b> for <code>POST /roster/run</code> and <code>POST /copilot/ask</code> → <span class="k">Save draft</span> → <span class="k">Approve plan</span> → <span class="k">Run in sandbox</span>; wait about 3 minutes (the first build is the slowest)</td><td class="ok">✓ <span class="k">Sandbox runs</span> → the run: <b>succeeded</b>; "Scenarios passed 9 of 9"; 15 of 15 services ready; about 2,500 spans; 6 model calls to gpt-4o (answered by the stub); nothing "missing from the graph"; no error logs</td><td>E8</td></tr>
+<tr><td class="n">T20</td><td>Back to <span class="k">Topology</span>; repeat T16 and T17</td><td class="ok">✓ "How this graph was found" now starts with <b>OTel traces</b> (24 nodes, 28 edges). Every node and edge you click lists <b>OTel traces</b> first ("sandbox run on …: code ran … / traffic"); tools also keep "MCP tool manifest". The counts in T12 are unchanged</td><td>E8, E9</td></tr>
+</tbody></table></div>
+
+<div class="note"><strong>Optional, with <code>CHAOS_ENABLED=1</code>:</strong> Journeys suggests "supervisor → forecast_demand → optimize_roster → compliance → writeback · Started by POST /roster/run" (accept it as "Nightly roster generation"); the journey page lists the faults that apply to each connection, e.g. "Rate limit · HTTP 429" on <code>workday.absences</code>. Not needed for the email.</div>
+
+<!-- ============================================================ -->
+<h2 id="trouble">4. If something does not match</h2>
+<div class="tw"><table><thead><tr><th>Symptom</th><th>Likely cause</th><th>What to do</th></tr></thead><tbody>
+<tr><td>Topology shows 0 agents, systems named "SAP_URL (unresolved)"</td><td>NaviStorm on <code>main</code> or an older branch</td><td>S1: <code>git checkout wpo-demo</code>, restart the API</td></tr>
+<tr><td>Check lists <code>agents/forecast_demand.py</code> as "could not read"</td><td>A branch without fix <code>a3d8542</code></td><td>Same</td></tr>
+<tr><td>The runtime plan says "uses the image wpo-reference:local … left out" and has 0 services</td><td>A branch without fix <code>3cb5a00</code></td><td>Same</td></tr>
+<tr><td>"NaviStorm cannot read it" on the GitHub link</td><td>The repo is private, or not pushed</td><td>Make it public, or install NaviStorm's GitHub App on that account (Settings › Code connections)</td></tr>
+<tr><td>API stops: "The database is older than this version"</td><td>A database from before M4</td><td>Back it up, then <code>alembic upgrade head</code> in <code>backend/</code> (or use a new database file, S2)</td></tr>
+<tr><td>A request answers 502 "… could not be reached"</td><td>A stand-in or MCP server is stopped (a write that is not a timeout is not retried)</td><td><code>docker compose ps</code>; <code>docker compose start &lt;service&gt;</code></td></tr>
+<tr><td><code>make up</code> times out or port 8080 is busy</td><td>Docker not running, or another app on 8080</td><td><code>docker info</code>; <code>AGENTS_PORT=8081 make up</code></td></tr>
+<tr><td>The sandbox run fails while building</td><td>A download hiccup during the image build</td><td>Run again once; if it repeats, send the run's first error</td></tr>
+<tr><td>No "OTel traces" after the run</td><td>The run did not succeed, or the page was not reloaded</td><td>Check <span class="k">Sandbox runs</span>; reload Topology</td></tr>
+<tr><td>Numbers differ in any other way</td><td>The project or NaviStorm changed</td><td><code>NAVISTORM_BACKEND=~/Desktop/NaviStorm/backend ~/Desktop/NaviStorm/backend/.venv/bin/python scripts/check_topology.py</code> names the exact difference</td></tr>
+</tbody></table></div>
+
+<!-- ============================================================ -->
+<h2 id="record">5. Test record</h2>
+<div class="tw"><table><thead><tr><th>Expectation from the email</th><th>Steps</th><th>Pass</th><th>Notes</th></tr></thead><tbody>
+<tr><td>E1 · Six stand-ins answer as the table</td><td>T1, T2, T3</td><td><span class="box"></span></td><td></td></tr>
+<tr><td>E2 · MCP servers; writes marked <code>destructiveHint</code></td><td>T1, T4</td><td><span class="box"></span></td><td></td></tr>
+<tr><td>E3 · Agents only through MCP</td><td>T5, T8</td><td><span class="box"></span></td><td></td></tr>
+<tr><td>E4 · Supervisor runs 1–4 in order; pass / fail edge</td><td>T5, T7, T13</td><td><span class="box"></span></td><td></td></tr>
+<tr><td>E5 · Copilot: separate graph, own entry, business hours</td><td>T6, T7</td><td><span class="box"></span></td><td></td></tr>
+<tr><td>E6 · Retry settings; unbounded retry marked</td><td>T1, T7b, T8, T17</td><td><span class="box"></span></td><td></td></tr>
+<tr><td>E7 · 1 orchestrator, 5 agents, 11 MCP tools, 6 systems, 18 edges, nothing by hand</td><td>T9–T15</td><td><span class="box"></span></td><td></td></tr>
+<tr><td>E8 · Nodes classified from traces and MCP manifests</td><td>T17–T20</td><td><span class="box"></span></td><td></td></tr>
+<tr><td>E9 · Every node and edge records its source</td><td>T12, T16, T17, T20</td><td><span class="box"></span></td><td></td></tr>
+<tr><td>E10 · No benchmarking, load or performance code</td><td>T8</td><td><span class="box"></span></td><td></td></tr>
+</tbody></table></div>
+
+<!-- ============================================================ -->
+<h2 id="cleanup">6. Clean up</h2>
+<ul>
+  <li>The project: <code>make down</code>. Sandbox runs clean up after themselves (<code>docker ps -a</code> shows no <code>navistorm-run-…</code> containers).</li>
+  <li>To go back to your usual NaviStorm work: <code>git checkout m4-experiments</code> (or your branch), and put <code>CHAOS_ENABLED</code> back.</li>
+</ul>
+
+</main>
+</body>
+</html>

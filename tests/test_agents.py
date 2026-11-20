@@ -162,12 +162,12 @@ async def test_writeback_gives_up_after_three_timeouts_and_does_not_retry_other_
     tools = canned()
     tools["schedules"] = FakeTool("schedules", {}, fail=[httpx.ReadTimeout("slow")] * 5)
     patch_tools(monkeypatch, tools)
-    assert (await writeback.writeback({"sites": [], "roster": {}}))["published"] is False
+    assert (await writeback.writeback({"sites": ["site-01"], "roster": {}}))["published"] is False
     assert len(tools["schedules"].calls) == 3
     tools["schedules"] = FakeTool("schedules", {}, fail=[ToolException("Workday answered HTTP 400")])
     patch_tools(monkeypatch, tools)
     with pytest.raises(ToolException):
-        await writeback.writeback({"sites": [], "roster": {}})
+        await writeback.writeback({"sites": ["site-01"], "roster": {}})
 
 
 # --------------------------------------------------------------------------------------------- copilot
@@ -241,3 +241,126 @@ def test_reading_list_and_object_results():
     assert items('[{"id": "w001"}]') == [{"id": "w001"}]  # one block holding a JSON array
     assert data(blocks({"status": "ok"})) == {"status": "ok"} and data([]) is None
     assert data((blocks({"status": "OK", "roster": {}}), None)) == {"status": "OK", "roster": {}}  # (content, artifact)
+
+
+# --------------------------------------------------- failures reach the agents as errors (final code review, 20 Nov)
+
+def test_tool_errors_are_raised_not_returned_as_text():
+    """The adapter's default hands a tool's error text back as if it were the answer; then W1 never retries and a
+    run with SAP down 'succeeds'. The client must be built with handle_tool_errors=False."""
+    from agents.mcp_client import client
+    assert client.handle_tool_errors is False
+
+
+@pytest.mark.parametrize("leaf,expect", [
+    (httpx.ReadTimeout("slow"), "MCP server workday did not answer"),
+    (httpx.ConnectError("refused"), "MCP server workday could not be reached (ConnectError)"),
+    (ConnectionRefusedError(), "MCP server workday could not be reached (ConnectionRefusedError)"),
+])
+def test_a_failing_mcp_server_becomes_a_tool_error(leaf, expect):
+    from agents.mcp_client import as_tool_error
+    group = BaseExceptionGroup("unhandled errors in a TaskGroup", [ExceptionGroup("inner", [leaf])])
+    err = as_tool_error(group, "MCP server workday")
+    assert isinstance(err, ToolException) and str(err) == expect
+    assert writeback.timed_out(err) is ("did not answer" in expect)  # writeback retries timeouts only
+
+
+async def test_the_tool_wrapper_turns_transport_failures_into_tool_errors():
+    from agents.mcp_client import Tool
+
+    class Down:
+        name = "absences"
+
+        async def ainvoke(self, args):
+            raise BaseExceptionGroup("unhandled errors in a TaskGroup", [httpx.ConnectError("refused")])
+
+    class Failing:
+        name = "absences"
+
+        async def ainvoke(self, args):
+            raise ToolException("Workday answered HTTP 429")
+
+    with pytest.raises(ToolException, match="MCP server workday could not be reached"):
+        await Tool(Down(), "workday").ainvoke({})
+    with pytest.raises(ToolException, match="Workday answered HTTP 429"):
+        await Tool(Failing(), "workday").ainvoke({})
+
+
+async def test_forecast_also_retries_model_timeouts_and_server_errors(monkeypatch, sleeps):
+    from openai import APITimeoutError
+    patch_tools(monkeypatch, canned())
+    calls = {"n": 0}
+
+    class Flaky:
+        async def ainvoke(self, prompt):
+            calls["n"] += 1
+            if calls["n"] <= 2:
+                raise APITimeoutError(request=httpx.Request("POST", "https://example.invalid"))
+            return type("R", (), {"content": "ok"})()
+    monkeypatch.setattr("agents.forecast_demand.llm", Flaky())
+    await forecast_demand.forecast_demand({})
+    assert sleeps == [1, 1]
+
+
+def test_azure_client_does_not_retry_by_itself(monkeypatch):
+    monkeypatch.setenv("WPO_LLM", "azure")
+    monkeypatch.setenv("AZURE_OPENAI_ENDPOINT", "https://example.invalid")
+    monkeypatch.setenv("AZURE_OPENAI_API_KEY", "not-a-real-key")
+    assert llm.chat_model().max_retries == 0  # otherwise the SDK honours Retry-After before W1 sees the 429
+
+
+def test_w4_is_marked_and_writeback_writes_nothing_for_no_sites():
+    src = pathlib.Path("agents/writeback.py").read_text()
+    assert "Deliberate weakness W4" in src and "for _ in range(3):" in src
+
+
+async def test_writeback_with_no_sites_writes_nothing(monkeypatch):
+    tools = canned()
+    patch_tools(monkeypatch, tools)
+    assert (await writeback.writeback({"sites": [], "roster": {}}))["published"] is False
+    assert not tools["schedules"].calls and not tools["notify"].calls
+
+
+async def test_weekly_hours_reach_compliance(monkeypatch):
+    tools = canned()
+    patch_tools(monkeypatch, tools)
+    out = await optimize_roster.optimize_roster({})
+    assert out["hours"]["w001"] == 37.5 and len(out["hours"]) == 56
+    tools["solve"] = FakeTool("solve", {"status": "OK", "roster": {"site-01": [{"line": "line-A", "workers": ["w001"]}]}})
+    patch_tools(monkeypatch, tools)
+    found = (await compliance.compliance({"roster": {"site-01": [{"line": "line-A", "workers": ["w001"]}]},
+                                          "hours": {"w001": 50}}))["breaches"]
+    assert "site-01: w001 is over the weekly hours limit" in found
+
+
+@pytest.mark.parametrize("spec,at,open_", [
+    ("07:00-24:00", "2026-11-20 23:59", True), ("07:00-24:00", "2026-11-20 06:59", False),
+    ("00:00-06:00", "2026-11-20 05:59", True),
+])
+def test_business_hours_end_of_day(monkeypatch, spec, at, open_):
+    monkeypatch.setenv("COPILOT_HOURS", spec)
+    monkeypatch.setenv("COPILOT_TZ", "Europe/London")
+    now = datetime.strptime(at, "%Y-%m-%d %H:%M").replace(tzinfo=ZoneInfo("Europe/London"))
+    assert hours.is_open(now) is open_
+
+
+@pytest.mark.parametrize("spec", ["24:00-06:00", "07:00-24:30", "7:00-19:00", "07:00-25:00"])
+def test_bad_business_hours_are_refused(monkeypatch, spec):
+    monkeypatch.setenv("COPILOT_HOURS", spec)
+    with pytest.raises(ValueError):
+        hours.window()
+
+
+def test_unknown_time_zone_is_refused(monkeypatch):
+    monkeypatch.setenv("COPILOT_HOURS", "07:00-19:00")
+    monkeypatch.setenv("COPILOT_TZ", "Mars/Base")
+    with pytest.raises(Exception):
+        hours.window()
+
+
+async def test_copilot_asks_which_site_and_reads_site_ids_exactly(monkeypatch):
+    patch_tools(monkeypatch, canned())
+    out = await copilot.ainvoke({"question": "Who is on shift tomorrow?"})
+    assert out["answer"] == "Which site do you mean? Ask about one of site-01 to site-14."
+    out = await copilot.ainvoke({"question": "What about site-100?"})
+    assert out["site"] == ""  # not read as site-10

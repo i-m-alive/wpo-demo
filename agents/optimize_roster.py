@@ -21,7 +21,8 @@ async def optimize_roster(state: dict) -> dict:
             for _ in range(MAX_ITER):
                 result = data(await tools["solve"].ainvoke({"payload": payload}))
                 if result.get("status") == "OK":
-                    return {"roster": result.get("roster", {}), "solver_status": "OK"}
+                    return {"roster": result.get("roster", {}), "solver_status": "OK",
+                            "hours": {w["id"]: w["contract_hours"] for w in workers}}
             return {"roster": {}, "solver_status": "no answer after max_iter"}
         except Exception:
             if attempt == MAX_RETRIES:

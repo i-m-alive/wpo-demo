@@ -31,7 +31,7 @@ async def compliance(state: dict) -> dict:
     tools = await tools_named("policy.rules", "lms.training_currency")
     rules = items(await tools["rules"].ainvoke({}))
     current = {(t["worker_id"], t["line"]) for t in items(await tools["training_currency"].ainvoke({})) if t["current"]}
-    found = breaches(state.get("roster", {}), rules, current, {})
+    found = breaches(state.get("roster", {}), rules, current, state.get("hours", {}))
     if os.getenv("WPO_FORCE_COMPLIANCE_FAIL") == "1":  # to show the loop back to the optimizer in a demo
         found.append("forced by WPO_FORCE_COMPLIANCE_FAIL")
     return {"compliant": not found and bool(rules), "breaches": found, "rounds": state.get("rounds", 0) + 1}

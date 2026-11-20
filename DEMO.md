@@ -8,8 +8,8 @@ at it and shows the topology the team brief asks for. Screens from a real run ar
 | Check | How | Expected |
 |---|---|---|
 | Docker Desktop is running | `docker info` | server details |
-| This repo is set up | `python3.12 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt`, then `make test` | `62 passed` |
-| NaviStorm has the two fixes this repo needed | in your NaviStorm folder: `git log --oneline -3 wporef-scanner-n1` | `3cb5a00`, `a3d8542` (see README, "NaviStorm version needed") |
+| This repo is set up | `python3.12 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt`, then `make test` | `83 passed` |
+| NaviStorm runs branch `wpo-demo` | in your NaviStorm folder: `git checkout wpo-demo`, then `git merge-base --is-ancestor 3cb5a00 HEAD && echo "fixes present"` | `fixes present` (see README, "NaviStorm version needed") |
 | NaviStorm's `backend/.env` | lines of their own | `CHAOS_ENABLED=1`, `RUNTIME_RUNNER=docker`, `ALLOW_LOCAL_REPOS=true` |
 
 Start NaviStorm's API and console as usual (NaviStorm's M1 UI test guide, section 1.3), open the console and sign in.
@@ -72,7 +72,7 @@ source classified it.
 
 | Symptom | Cause | What to do |
 |---|---|---|
-| Check lists `agents/forecast_demand.py` as "could not read" | NaviStorm without fix `a3d8542` | Use branch `wporef-scanner-n1` (or a NaviStorm that includes it) |
+| Check lists `agents/forecast_demand.py` as "could not read" | NaviStorm without fix `a3d8542` | Run NaviStorm from branch `wpo-demo` |
 | The runtime plan has 0 services, "uses the image wpo-reference:local … left out" | NaviStorm without fix `3cb5a00` | Same |
 | Counts differ | The repo or NaviStorm changed | `scripts/check_topology.py` names the exact difference |
 | `make up` times out | Docker not running, or port 8080 taken | `docker info`; `AGENTS_PORT=8081 make up` |

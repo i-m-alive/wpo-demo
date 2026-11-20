@@ -6,7 +6,7 @@ import asyncio
 
 import httpx
 from langchain_core.tools import ToolException
-from openai import RateLimitError
+from openai import APIError, RateLimitError
 
 from .llm import llm
 from .mcp_client import items, tools_named
@@ -38,7 +38,7 @@ def summary(demand: dict) -> str:
 async def forecast_demand(state: dict) -> dict:
     # ---------------------------------------------------------------------------------------------------------
     # DELIBERATE DEFECT W1 (demo 1) - DO NOT FIX.
-    # When Workday, SAP or MES fails (for example Workday throttling with HTTP 429), or the model is rate limited,
+    # When Workday, SAP or MES fails (for example Workday throttling with HTTP 429), or the model fails or is limited,
     # this retries forever, after the same fixed one-second wait every time, and never reads Retry-After. Under a
     # throttle that multiplies the calls to the throttled system. It is the weakness the first NaviStorm demo finds;
     # the fix (honour Retry-After, cap at 3 attempts, add jitter) is what the demo recommends. Leave it as it is.
@@ -55,5 +55,5 @@ async def forecast_demand(state: dict) -> dict:
             note = await llm.ainvoke("Explain tonight's staffing demand for a production planner.\n"
                                      f"DRAFT: {summary(demand)}")
             return {"sites": sites, "demand": demand, "forecast_note": note.content}
-        except (ToolException, RateLimitError, httpx.HTTPError):
+        except (ToolException, RateLimitError, APIError, httpx.HTTPError):
             await asyncio.sleep(FIXED_DELAY_S)

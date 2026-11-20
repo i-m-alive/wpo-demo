@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wpo-reference Audit</title>
+<style>
+  :root {
+    --bg:#ffffff; --fg:#1f2328; --muted:#59636e; --border:#d1d9e0; --head:#f6f8fa; --code:#eff1f3; --accent:#0969da;
+    --card:#ffffff; --soft:#f6f8fa;
+    --ok:#1a7f37; --ok-bg:#dafbe1; --warn:#9a6700; --warn-bg:#fff8c5; --bad:#cf222e; --bad-bg:#ffebe9;
+    --you:#8250df; --you-bg:#fbefff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --border:#3d444d; --head:#151b23; --code:#262c36; --accent:#4493f8;
+      --card:#151b23; --soft:#161b22;
+      --ok:#7ee787; --ok-bg:#0f3320; --warn:#e3b341; --warn-bg:#3b2e05; --bad:#ff7b72; --bad-bg:#4a1418;
+      --you:#d2a8ff; --you-bg:#2f1c4a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --border:#3d444d; --head:#151b23; --code:#262c36; --accent:#4493f8;
+    --card:#151b23; --soft:#161b22;
+    --ok:#7ee787; --ok-bg:#0f3320; --warn:#e3b341; --warn-bg:#3b2e05; --bad:#ff7b72; --bad-bg:#4a1418;
+    --you:#d2a8ff; --you-bg:#2f1c4a;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  main { max-width:1020px; margin:0 auto; padding:32px 16px 80px; }
+  h1 { font-size:1.9em; line-height:1.25; margin:0 0 8px; }
+  h1 + p { color:var(--muted); margin-top:0; }
+  h2 { font-size:1.4em; margin:48px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--border); scroll-margin-top:12px; }
+  h3 { font-size:1.1em; margin:24px 0 8px; scroll-margin-top:12px; }
+  h4 { font-size:1em; margin:16px 0 6px; }
+  a { color:var(--accent); }
+  p, li { max-width:80ch; }
+  code { background:var(--code); padding:1px 5px; border-radius:4px; font:0.86em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre { background:var(--code); padding:12px 14px; border-radius:8px; overflow-x:auto; font:0.83em/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre code { background:none; padding:0; }
+  .tw { overflow-x:auto; margin:10px 0 18px; }
+  table { width:100%; border-collapse:collapse; min-width:620px; font-size:0.93em; }
+  th, td { border:1px solid var(--border); padding:6px 9px; text-align:left; vertical-align:top; }
+  th { background:var(--head); }
+  td.n { white-space:nowrap; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .muted { color:var(--muted); } .small { font-size:0.9em; }
+  nav.toc { background:var(--soft); border:1px solid var(--border); border-radius:10px; padding:14px 18px; margin:20px 0 8px; }
+  nav.toc ol { margin:6px 0 0; padding-left:22px; columns:2; column-gap:32px; } @media (max-width:640px) { nav.toc ol { columns:1; } }
+  .tldr { border-left:4px solid var(--accent); background:var(--soft); padding:12px 16px; border-radius:0 8px 8px 0; margin:16px 0; }
+  .tldr p { margin:6px 0; }
+  .note { border:1px solid var(--border); border-radius:8px; padding:10px 14px; margin:14px 0; background:var(--soft); }
+  .warnbox { border:1px solid var(--warn); background:var(--warn-bg); border-radius:8px; padding:10px 14px; margin:14px 0; }
+  .badbox { border:1px solid var(--bad); background:var(--bad-bg); border-radius:8px; padding:10px 14px; margin:14px 0; }
+  .tag { display:inline-block; font-size:0.78em; font-weight:600; padding:1px 8px; border-radius:999px; white-space:nowrap; vertical-align:1px; }
+  .you { color:var(--you); background:var(--you-bg); }
+  .dev { color:var(--accent); background:var(--soft); border:1px solid var(--border); }
+  .phase { border:1px solid var(--border); border-left:5px solid var(--accent); border-radius:10px; padding:4px 18px 12px; margin:22px 0; background:var(--card); }
+  .facts { display:flex; flex-wrap:wrap; gap:6px 14px; font-size:0.9em; color:var(--muted); margin:-2px 0 8px; }
+  .facts b { color:var(--fg); font-weight:600; }
+  .ac { border:1px solid var(--ok); background:var(--ok-bg); border-radius:8px; padding:8px 14px; margin:12px 0; }
+  .ac > strong { color:var(--ok); }
+  .ac ol { margin:4px 0; padding-left:22px; } .ac li { margin:3px 0; }
+  .flow { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:14px 0; }
+  .flow span.box { border:1px solid var(--border); border-radius:8px; padding:6px 10px; background:var(--card); font-size:0.9em; }
+  .flow span.arr { color:var(--muted); }
+  ol.steps > li { margin:6px 0; }
+  td.ok, .ok { color:var(--ok); font-weight:600; }
+  td.warn { color:var(--warn); font-weight:600; }
+  .tag.ok { color:var(--ok); background:var(--ok-bg); }
+  .tag.warn { color:var(--warn); background:var(--warn-bg); }
+</style>
+</head>
+<body>
+<main>
+
+<h1>wpo-reference: audit</h1>
+<p><time datetime="2026-11-20">20 Nov 2026</time> · A check of the mock WPO project against the team's email and the NaviStorm wireframes: what was asked, what was built, how we know it works, and what is still left. Written in plain words; a short glossary is at the end.</p>
+
+<div class="tldr">
+  <p><strong>In one paragraph.</strong> Everything the email asked for is built and working. The project has six pretend systems, a tool layer (MCP) in front of them, and five AI agents that use only that tool layer. One command starts it all. When NaviStorm reads the project, it draws exactly the picture the email asks for: <b>1 orchestrator, 5 agents, 11 MCP tools, 6 systems, 18 edges</b>, and it says for every box and line how it knows. A final code review (section 5b) found and fixed one serious problem and several smaller ones. <strong>For the demo, run NaviStorm from branch <code>wpo-demo</code></strong>: <code>m4-experiments</code> plus the small NaviStorm fixes this project needed.</p>
+</div>
+
+<div class="tw"><table>
+  <thead><tr><th>The email's three tasks</th><th>Status</th><th>In short</th></tr></thead>
+  <tbody>
+    <tr><td>1 · Build the reference repo (six stand-in systems)</td><td><span class="tag ok">Done</span></td><td>All six, with exactly the endpoints and answers in the email</td></tr>
+    <tr><td>2 · Build the agents and the orchestration</td><td><span class="tag ok">Done</span></td><td>Four agents run in order under one supervisor, plus the separate copilot; tools only through MCP; retry behaviour exactly as written, including the deliberate one</td></tr>
+    <tr><td>3 · Wire NaviStorm to the repo</td><td><span class="tag ok">Done on <code>wpo-demo</code></span></td><td>NaviStorm draws 1 · 5 · 11 · 6 · 18 with sources on everything, and a sandbox run adds "OTel traces". Use NaviStorm branch <code>wpo-demo</code>; <code>main</code> cannot read this project</td></tr>
+  </tbody>
+</table></div>
+
+<nav class="toc" aria-label="Contents"><strong>Contents</strong><ol>
+  <li><a href="#built">What was built</a></li>
+  <li><a href="#email">The email, line by line</a></li>
+  <li><a href="#wireframes">Compared with the wireframes</a></li>
+  <li><a href="#proof">How we know it works</a></li>
+  <li><a href="#problems">Problems found and fixed</a></li>
+  <li><a href="#review">Final code review</a></li>
+  <li><a href="#left">What is left</a></li>
+  <li><a href="#where">Where everything is</a></li>
+  <li><a href="#glossary">Glossary</a></li>
+</ol></nav>
+
+<!-- ============================================================ -->
+<h2 id="built">1. What was built</h2>
+<p>A pretend version of a Workforce Optimization product: the kind of system that plans who works which shift at which site. Nothing in it talks to a real company system. It lives in its own folder, <code>~/Desktop/wpo-reference</code>, with its own git history.</p>
+<div class="tw"><table>
+  <thead><tr><th>Part</th><th>What it is, simply</th><th>How many</th></tr></thead>
+  <tbody>
+    <tr><td><b>Stand-in systems</b></td><td>Tiny web services that pretend to be SAP, Workday, the manufacturing system (MES), the training system (LMS), the NVIDIA solver (cuOpt) and Microsoft Teams. They always give the same fixed answers.</td><td>6</td></tr>
+    <tr><td><b>Pretend data</b></td><td>14 sites, 56 workers, 12 absences, 28 production lines, 84 training records, 4 rules, last night's roster. Made-up names.</td><td>7 files</td></tr>
+    <tr><td><b>MCP servers</b></td><td>The "tool layer" in front of each stand-in. Agents ask a tool for something; the tool asks the stand-in. Tools that change data are labelled as such.</td><td>8 servers, 11 tools (3 that write)</td></tr>
+    <tr><td><b>Agents</b></td><td>forecast_demand, optimize_roster, compliance, writeback (run in that order by a supervisor), and manager_copilot (on its own).</td><td>5</td></tr>
+    <tr><td><b>Packaging</b></td><td>One Docker image and one Compose file. <code>make up</code> starts everything; only the agents can be reached from outside.</td><td>15 services</td></tr>
+    <tr><td><b>Checks</b></td><td>Automatic tests, a full start-to-finish test in Docker, and a script that asks NaviStorm's own scanner to read the project and compares the result with the expected picture.</td><td>83 tests + 22 topology checks</td></tr>
+  </tbody>
+</table></div>
+
+<h3>How a nightly roster runs</h3>
+<div class="flow">
+  <span class="box">Supervisor</span><span class="arr">→</span>
+  <span class="box">1 · forecast_demand<br><span class="small muted">plan, lines, absences + AI</span></span><span class="arr">→</span>
+  <span class="box">2 · optimize_roster<br><span class="small muted">workers, training, solver</span></span><span class="arr">→</span>
+  <span class="box">3 · compliance<br><span class="small muted">rules, training</span></span><span class="arr">→ pass →</span>
+  <span class="box">4 · writeback<br><span class="small muted">Workday, SAP, Teams</span></span>
+</div>
+<p class="small">If compliance fails, the roster goes back to the optimizer (at most 3 times, then the run stops). The <b>manager copilot</b> is separate: a manager asks a question, it reads the last published roster and answers.</p>
+
+<h3>Weaknesses left in on purpose</h3>
+<p>NaviStorm is a tool for breaking things on purpose, so the project needs weak spots for the demos to find. They are marked in the code with "do not fix".</p>
+<div class="tw"><table>
+  <thead><tr><th>#</th><th>Weak spot</th><th>Why it matters in a demo</th></tr></thead>
+  <tbody>
+    <tr><td>W1</td><td>When Workday (or SAP, MES, or the AI) fails, the forecast agent retries forever, every second, and ignores the "please wait N seconds" signal (Retry-After)</td><td>Asked for in the email. Under a Workday slowdown it floods Workday with calls: the first demo's finding</td></tr>
+    <tr><td>W2</td><td>The optimizer waits until every one of the 14 sites has a forecast</td><td>One slow site holds up all sites (a finding in the Findings wireframe)</td></tr>
+    <tr><td>W3</td><td>The copilot answers from the last roster without saying how old it is</td><td>After a bad night, managers get yesterday's roster as if it were today's (a finding in the Findings wireframe)</td></tr>
+    <tr><td>W4</td><td>When one write times out, writeback repeats all its writes, including those that already worked</td><td>Duplicate schedules and confirmations: the "duplicate write" fault the journey wireframe lists for the write path</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ============================================================ -->
+<h2 id="email">2. The email, line by line</h2>
+<div class="tw"><table>
+  <thead><tr><th>The email asked</th><th>Built</th><th>Proof</th></tr></thead>
+  <tbody>
+    <tr><td>Six local stand-ins, each a small FastAPI service in the same repo, under one Docker setup</td><td class="ok">Yes</td><td>Tests; <code>make smoke</code> starts all of them</td></tr>
+    <tr><td><code>stub-sap</code>: <code>GET /production_plan</code> → 14 site ids; <code>POST /shift_confirm</code> → <code>{"status":"ok"}</code></td><td class="ok">Yes</td><td>Tests check the exact answers</td></tr>
+    <tr><td><code>stub-workday</code>: <code>GET /absences</code>, <code>GET /workers</code> → lists; <code>POST /schedules</code> → <code>{"status":"ok"}</code></td><td class="ok">Yes</td><td>same</td></tr>
+    <tr><td><code>stub-mes</code>: <code>GET /line_availability</code>; <code>stub-lms</code>: <code>GET /training_currency</code></td><td class="ok">Yes</td><td>same</td></tr>
+    <tr><td><code>stub-cuopt</code>: <code>POST /solve</code> → <code>{"status":"OK","roster":{}}</code>; <code>stub-teams</code>: <code>POST /notify</code> → <code>{"status":"ok"}</code></td><td class="ok">Yes</td><td>same</td></tr>
+    <tr><td>Canned lists, hard-coded; "not building a WPO application"</td><td class="ok">Yes</td><td>The answers are fixed JSON files; no business logic in the stand-ins</td></tr>
+    <tr><td>Each stand-in wrapped in an MCP server; write tools marked <code>destructiveHint: true</code></td><td class="ok">Yes</td><td>Tests read every server's tool list: exactly the 3 write tools carry the mark</td></tr>
+    <tr><td>Agents never call the stand-ins directly</td><td class="ok">Yes</td><td>A test searches the agents' code; NaviStorm finds no agent → system line; the stand-ins cannot even be reached from outside Docker</td></tr>
+    <tr><td>LangGraph supervisor over nodes 1–4, in order</td><td class="ok">Yes</td><td>A test reads the compiled graph's order</td></tr>
+    <tr><td>forecast_demand: SAP plan, MES lines, Workday absences, Azure OpenAI; retry forever, fixed wait, ignore Retry-After; marked so nobody fixes it</td><td class="ok">Yes</td><td>Tests (50 failures in a row, Retry-After of 30 s ignored); NaviStorm reads "unbounded · fixed 1 s · ignores Retry-After"</td></tr>
+    <tr><td>optimize_roster: workers, training, solver; retry 2, max_iter 4</td><td class="ok">Yes</td><td>Tests count 3 attempts and 4 solver passes; NaviStorm reads the same</td></tr>
+    <tr><td>compliance: rules, training; no retry; pass → writeback, fail → optimizer</td><td class="ok">Yes</td><td>Tests for both paths; NaviStorm draws the loop</td></tr>
+    <tr><td>writeback: schedules, shift confirm, notify; write path; retries on timeout</td><td class="ok">Yes</td><td>Tests: a timeout is retried twice, other errors are not</td></tr>
+    <tr><td>manager_copilot: roster store, Azure OpenAI; separate graph; business hours</td><td class="ok">Yes</td><td>Tests; answers "423, closed" outside its hours</td></tr>
+    <tr><td>NaviStorm draws 1 orchestrator, 5 agents, 11 MCP tools, 6 systems, 18 edges, with nothing set up by hand</td><td class="warn">Yes, with the two fixes</td><td>The topology check passes all 22 checks; the console header shows exactly these numbers</td></tr>
+    <tr><td>Each node classified from traces and MCP manifests</td><td class="warn">Yes, with the two fixes</td><td>After one NaviStorm sandbox run, every box and line says "OTel traces"; every tool also says "MCP tool manifest"</td></tr>
+    <tr><td>Each node and edge records which source classified it</td><td class="ok">Yes</td><td>Nothing in the picture is without a source</td></tr>
+    <tr><td>No latency benchmarking, load generation or performance measurement</td><td class="ok">Yes</td><td>None in the project</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ============================================================ -->
+<h2 id="wireframes">3. Compared with the wireframes</h2>
+<h3>3.1 What matches</h3>
+<ul>
+  <li><b>Topology (wireframe 2):</b> the same 5 agents, the same 11 tool names, the same 6 systems, the header "From OTel traces … · 5 agents, 11 tools, 6 systems, 18 edges", and the selected edge showing <b>Retry policy: unbounded</b> with an AI suggestion pointing at it.</li>
+  <li><b>Journey (wireframe 3):</b> NaviStorm suggests the nightly roster journey (supervisor → forecast → optimize → compliance → writeback), started by <code>POST /roster/run</code>.</li>
+  <li><b>Experiment, Run, Findings (wireframes 4, 6, 7):</b> the weak spots they show (retry flood, optimizer waiting for every site, stale roster in the copilot) are in the project, ready for when NaviStorm can inject faults.</li>
+</ul>
+
+<h3>3.2 Different on purpose</h3>
+<div class="tw"><table>
+  <thead><tr><th>Wireframe shows</th><th>We built</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>Two Service Bus queues, and the optimizer and compliance writing to <code>roster.store</code></td><td>Neither</td><td>The email says agents reach systems only through MCP, and its 18 edges have no queue. A later version can add them</td></tr>
+    <tr><td>Agent names "Demand Forecast", "Roster Optimizer" …</td><td>The email's names: <code>forecast_demand</code>, <code>optimize_roster</code> …</td><td>NaviStorm takes names from the code; the email gives the code names</td></tr>
+    <tr><td>Three repositories (wpo-agents, wpo-mcp-servers, wpo-infra)</td><td>One repository</td><td>The email asks for one repo, "wpo-reference"</td></tr>
+    <tr><td>"Calls per night 2,800 · p95 620 ms"</td><td>Shown as "—"</td><td>The email rules out performance measurement</td></tr>
+    <tr><td>Three journeys on the product overview (nightly roster, shift swap approval, same-day absence re-optimisation)</td><td>The nightly roster, plus the copilot</td><td>The email describes only these; the other two would need new agents</td></tr>
+  </tbody>
+</table></div>
+
+<h3>3.3 Not the project's job: NaviStorm features still being built</h3>
+<div class="tw"><table>
+  <thead><tr><th>Wireframe</th><th>Needs</th><th>NaviStorm milestone</th></tr></thead>
+  <tbody>
+    <tr><td>Experiment builder (4)</td><td>Building an experiment on a connection</td><td>M4 (in progress)</td></tr>
+    <tr><td>Run screen (6), Findings (7)</td><td>Actually injecting a fault (e.g. Workday 429) and watching the result</td><td>M5–M7</td></tr>
+    <tr><td>"From … MCP proxy logs"</td><td>The agents' tool calls going through NaviStorm's MCP proxy in a sandbox run (today they go straight to the servers; finding S2)</td><td>M5</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ============================================================ -->
+<h2 id="proof">4. How we know it works</h2>
+<div class="tw"><table>
+  <thead><tr><th>Check</th><th>What it does</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td>Automatic tests (<code>make test</code>)</td><td>Every stand-in answer, every tool and its label, every agent's retry behaviour, both graphs, the API, business hours, and how failures reach the agents. No Docker, network or keys needed</td><td class="ok">83 of 83 pass</td></tr>
+    <tr><td>Start-to-finish test (<code>make smoke</code>)</td><td>Builds the image, starts all 15 services, runs a nightly roster and asks the copilot, checks the answers, removes everything</td><td class="ok">Passes; nothing left running</td></tr>
+    <tr><td>Topology check (<code>scripts/check_topology.py</code>)</td><td>Runs NaviStorm's own scanner on the project and compares with the expected picture: counts, every line, the loop, triggers, retries, sources; also proves the test code changes nothing</td><td class="ok">22 of 22 pass (with the fixes)</td></tr>
+    <tr><td>NaviStorm sandbox run</td><td>NaviStorm builds and runs all 15 services itself, sends traffic, collects traces</td><td class="ok">9 of 9 scenarios passed, 15 of 15 services ready, about 2,500 trace spans, 6 AI calls (answered by NaviStorm's stand-in model), nothing missing from the picture</td></tr>
+    <tr><td>Failures, live</td><td>Stopping Workday, an MCP server, or Teams while a roster runs</td><td class="ok">Workday or an MCP server down: the forecast agent keeps retrying every second (84 calls in a minute), then finishes once it is back. Teams down: a clear "502: Microsoft Teams could not be reached"</td></tr>
+    <tr><td>The console</td><td>Screens captured from a real NaviStorm, in <code>docs/screens/</code></td><td class="ok">Topology header: "1 orchestrator, 5 agents, 11 MCP tools, 6 systems, 18 edges"</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ============================================================ -->
+<h2 id="problems">5. Problems found and fixed</h2>
+<div class="tw"><table>
+  <thead><tr><th>#</th><th>Problem</th><th>Found by</th><th>Fixed how</th></tr></thead>
+  <tbody>
+    <tr><td>P1</td><td>The agents misread lists coming back from tools: the 14 site ids were read letter by letter ("113 sites"). Real MCP sends a list as one piece per item</td><td>The start-to-finish test in Docker</td><td>The agents now read lists and single answers separately; the test fakes now answer exactly like real MCP</td></tr>
+    <tr><td>P2</td><td><b>In NaviStorm:</b> it counted forecast_demand as an agent but also listed its file as one it "could not read"</td><td>The topology check</td><td>Fixed in NaviStorm with a test (commit <code>a3d8542</code>)</td></tr>
+    <tr><td>P3</td><td><b>In NaviStorm:</b> the sandbox plan had 0 services: it misread <code>build: .</code> + <code>image:</code> in the Compose file as "an outside image"</td><td>Generating the sandbox plan</td><td>Fixed in NaviStorm with a test (commit <code>3cb5a00</code>); now 15 services</td></tr>
+    <tr><td>P4</td><td>NaviStorm read the retry wait as "waits between attempts" instead of "fixed 1 s"</td><td>The topology check</td><td>The wait is now written as a whole number in the project</td></tr>
+  </tbody>
+</table></div>
+<p class="small">P2 and P3 are merged into NaviStorm branch <code>wpo-demo</code> (from <code>m4-experiments</code>); all 852 NaviStorm tests pass there. They were made in a separate copy so nobody's work in progress was touched.</p>
+
+<!-- ============================================================ -->
+<h2 id="review">5b. Final code review</h2>
+<p>A separate reviewer read all of the project's code and the NaviStorm fixes, and ran real stand-ins and MCP servers to check behaviour. What it found, and what happened:</p>
+<div class="tw"><table>
+  <thead><tr><th>#</th><th>Found</th><th>How serious</th><th>Now</th></tr></thead>
+  <tbody>
+    <tr><td>R1</td><td>When a tool failed (e.g. Workday down), the error came back as if it were the answer. The forecast agent crashed instead of retrying, so the deliberate retry (W1), the first demo's whole point, never happened; with SAP down a run even reported "published"</td><td>Blocker</td><td class="ok">Fixed: tool errors are now real errors. Checked live: Workday down → retries every second, then finishes</td></tr>
+    <tr><td>R2</td><td>A whole MCP server down or hanging gave an error no retry rule caught</td><td>Should fix</td><td class="ok">Fixed: it now counts as a tool error ("did not answer" for a hang, so writeback retries it)</td></tr>
+    <tr><td>R3</td><td>The AI client retried by itself and obeyed "wait N seconds", hiding W1; some AI errors (timeouts, 5xx) crashed the run</td><td>Should fix</td><td class="ok">Fixed: the client no longer retries by itself; W1 catches every AI error</td></tr>
+    <tr><td>R4</td><td>The guides pointed at a NaviStorm branch without M3/M4, and their check could pass on a checkout without the fixes</td><td>Should fix</td><td class="ok">Fixed: use <code>wpo-demo</code>; the check now proves the fixes are in the checkout you run</td></tr>
+    <tr><td>R5</td><td>The agents' port was open to the whole network, so anyone on the same Wi-Fi could start a roster</td><td>Should fix</td><td class="ok">Fixed: this machine only</td></tr>
+    <tr><td>R6</td><td>A writeback retry re-sends writes that already worked</td><td>Should fix</td><td class="ok">Kept on purpose and marked as weak spot W4 (it matches the wireframe's "duplicate write")</td></tr>
+    <tr><td>R7</td><td>Business hours: a window ending at 24:00 closed a minute early; "24:00-06:00" crashed every request</td><td>Small</td><td class="ok">Fixed; a bad setting now stops the service at start-up with a clear message</td></tr>
+    <tr><td>R8</td><td>An unknown site reported "published"; a question without a site was answered for site-01; "site-100" read as "site-10"</td><td>Small</td><td class="ok">Fixed: 404 for an unknown site; the copilot asks which site</td></tr>
+    <tr><td>R9</td><td>The NaviStorm "could not read" fix hid more than the one false note</td><td>Small</td><td class="ok">Fixed in NaviStorm (commit <code>466771c</code>) with a test</td></tr>
+    <tr><td>R10</td><td>The weekly-hours rule could never trigger</td><td>Small</td><td class="ok">Fixed: the optimizer passes contract hours on to compliance</td></tr>
+  </tbody>
+</table></div>
+<p class="small">Also new: a system failure the agents do not retry (e.g. Teams refusing) now answers "502" with the system named, instead of a bare server error.</p>
+
+<!-- ============================================================ -->
+<h2 id="left">6. What is left</h2>
+
+<h3>Must do before a demo</h3>
+<div class="tw"><table>
+  <thead><tr><th>#</th><th>What</th><th>Why</th><th>Effort</th></tr></thead>
+  <tbody>
+    <tr><td class="n">1</td><td><b>Run NaviStorm from branch <code>wpo-demo</code></b>, with <code>CHAOS_ENABLED=0</code> for a <code>main</code>-like console (or <code>1</code> to also show journeys and faults)</td><td>It is <code>m4-experiments</code> plus the NaviStorm fixes this project needed; on <code>main</code> or older branches task 3 cannot pass</td><td>Minutes</td></tr>
+    <tr><td class="n">2</td><td><b>Share the project with the team</b>: push it to GitHub (or Azure DevOps), then add it in NaviStorm by its link</td><td>It exists only on this laptop. A public GitHub repo works with the link alone; a private one needs NaviStorm's GitHub App</td><td>Minutes, once you choose where</td></tr>
+    <tr><td class="n">3</td><td><b>Follow the test plan once</b> (<a href="Test-Plan.html">Test-Plan.html</a>), including one sandbox run</td><td>Until a sandbox run has happened in that NaviStorm, sources show code, manifests and Compose but not yet "OTel traces"</td><td>About 30 minutes</td></tr>
+  </tbody>
+</table></div>
+
+<h3>Should do soon</h3>
+<div class="tw"><table>
+  <thead><tr><th>#</th><th>What</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td class="n">4</td><td>Mark SAP and Workday as protected systems in NaviStorm's blast-radius policy (M3 is now in NaviStorm)</td><td>The wireframe labels them "validated system · no production injection"</td></tr>
+    <tr><td class="n">5</td><td>Update NaviStorm's own small copy of this project (in its tests), or point its test at this project</td><td>That copy has the same list-reading bug as P1 (it never runs, so it does not show), and a scanner change could break the demo without any test noticing</td></tr>
+    <tr><td class="n">6</td><td>Merge <code>wpo-demo</code>'s three NaviStorm commits into the main line of NaviStorm work when convenient, then delete <code>wporef-scanner-n1</code></td><td>So later branches keep the fixes</td></tr>
+  </tbody>
+</table></div>
+
+<h3>Later: comes with NaviStorm, not with this project</h3>
+<ul>
+  <li>Injecting the first demo's fault (Workday answers "429, too many requests") and watching the retry flood: NaviStorm M5. It also needs finding S2 fixed, so the agents' tool calls pass through NaviStorm's MCP proxy.</li>
+  <li>The experiment builder (M4, in progress), the live run screen (M6), findings and the resilience score (M7).</li>
+</ul>
+
+<h3>Optional: decided against for now</h3>
+<ul>
+  <li>The Service Bus queue and the extra roster writes from the journey wireframe.</li>
+  <li>The wireframe's display names for the agents.</li>
+  <li>The two other journeys on the product overview wireframe.</li>
+  <li>Splitting into three repositories as in the onboarding wireframes.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="where">7. Where everything is</h2>
+<div class="tw"><table>
+  <thead><tr><th>What</th><th>Where</th></tr></thead>
+  <tbody>
+    <tr><td>The project</td><td><code>~/Desktop/wpo-reference</code> (git commit <code>db30844</code>, local only)</td></tr>
+    <tr><td>How to run it, settings, the weak spots</td><td><code>README.md</code></td></tr>
+    <tr><td>The demo, click by click</td><td><code>DEMO.md</code>; screens in <code>docs/screens/</code></td></tr>
+    <tr><td>The plan it was built from</td><td><code>docs/Implementation-Plan.html</code></td></tr>
+    <tr><td>The expected NaviStorm picture</td><td><code>expected-topology.json</code></td></tr>
+    <tr><td>The NaviStorm to use</td><td>NaviStorm branch <code>wpo-demo</code> (local only): <code>m4-experiments</code> + <code>a3d8542</code>, <code>3cb5a00</code>, <code>466771c</code></td></tr>
+    <tr><td>The step-by-step test plan</td><td><code>docs/Test-Plan.html</code></td></tr>
+  </tbody>
+</table></div>
+<p>Three commands, from the project folder:</p>
+<pre><code>make test     # the 83 tests, in a second
+make up       # start everything; the agents answer on http://localhost:8080
+make smoke    # the whole start-to-finish check, then clean up</code></pre>
+
+<!-- ============================================================ -->
+<h2 id="glossary">8. Glossary</h2>
+<div class="tw"><table>
+  <thead><tr><th>Word</th><th>Means</th></tr></thead>
+  <tbody>
+    <tr><td>Stand-in (stub)</td><td>A fake version of a real system that gives fixed answers, so nothing real is touched</td></tr>
+    <tr><td>MCP, MCP server, tool</td><td>A standard way for AI agents to use tools. An MCP server offers tools (e.g. "workday.absences"); the agent calls the tool, the tool talks to the system</td></tr>
+    <tr><td>Destructive hint</td><td>A label on a tool saying it changes data (a write)</td></tr>
+    <tr><td>Agent</td><td>A piece of the product that does one job, sometimes with AI (e.g. forecasting demand)</td></tr>
+    <tr><td>Orchestrator, supervisor</td><td>The part that runs the agents in the right order</td></tr>
+    <tr><td>Node, edge</td><td>A box in NaviStorm's picture (an agent, tool or system), and a line between two boxes (one calls the other)</td></tr>
+    <tr><td>Topology</td><td>NaviStorm's picture of all the boxes and lines</td></tr>
+    <tr><td>Source ("classified by")</td><td>How NaviStorm knows a box or line is there: from the code, a tool's label (MCP manifest), the Docker Compose file, a known vendor's name, or traces from a real run</td></tr>
+    <tr><td>Sandbox run</td><td>NaviStorm builds and runs the whole project in an isolated area, sends it traffic, and watches what happens</td></tr>
+    <tr><td>OTel traces</td><td>Records of every call made during a run (OpenTelemetry), the most trusted source</td></tr>
+    <tr><td>Retry-After</td><td>A system's way of saying "slow down, try again in N seconds"; ignoring it makes things worse</td></tr>
+    <tr><td>Fault injection</td><td>Breaking one thing on purpose (e.g. making Workday slow) to see whether the product copes</td></tr>
+  </tbody>
+</table></div>
+
+</main>
+</body>
+</html>
