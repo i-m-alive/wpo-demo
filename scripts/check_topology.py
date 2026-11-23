@@ -4,7 +4,7 @@
       ~/path/to/NaviStorm/backend/.venv/bin/python scripts/check_topology.py
 
 Checks what the Topology screen will show, with nothing configured by hand: the counts (1 orchestrator, 5 agents,
-11 MCP tools, 6 systems, 18 edges), every node and edge, the compliance loop, the triggers, the retry settings read from
+11 MCP tools, 8 systems, 18 edges), every node and edge, the compliance loop, the triggers, the retry settings read from
 the code, the write tools, and that every node and edge records which source classified it. Then scans a copy without
 tests/ and scripts/ and checks the result is identical (test code must never change the topology).
 Prints one line per check and exits 1 on the first difference.
@@ -69,15 +69,15 @@ def main() -> int:
     check("5 agents", sorted(n.name for n in ex.nodes.values() if n.type == "agent") == EXPECTED["agents"])
     check("11 MCP tools", sorted(n.name for n in ex.nodes.values() if n.type == "tool" and n.attrs.get("server"))
           == EXPECTED["mcp_tools"])
-    check("6 systems", sorted(n.name for n in ex.nodes.values() if n.type == "system") == EXPECTED["systems"])
+    check(f"{c['systems']} systems", sorted(n.name for n in ex.nodes.values() if n.type == "system") == EXPECTED["systems"])
     models = [n for n in ex.nodes.values() if n.type == "model"]
-    check("1 model, Azure OpenAI gpt-4o", len(models) == 1 and models[0].attrs.get("provider") == EXPECTED["model"]["provider"]
+    check(f"1 model, {EXPECTED['model']['provider']} {EXPECTED['model']['model_id']}", len(models) == 1 and models[0].attrs.get("provider") == EXPECTED["model"]["provider"]
           and models[0].attrs.get("model_id") == EXPECTED["model"]["model_id"], str([(m.name, m.attrs) for m in models]))
     check("18 agent-level edges", s["agent_level"] == sorted(EXPECTED["agent_level_edges"]),
           f"missing {[x for x in EXPECTED['agent_level_edges'] if x not in s['agent_level']]}, "
           f"extra {[x for x in s['agent_level'] if x not in EXPECTED['agent_level_edges']]}")
     check("the compliance -> optimizer loop", s["loops"] == sorted(EXPECTED["loops"]), str(s["loops"]))
-    check("9 tool -> system links with R/W", s["hits"] == sorted(EXPECTED["tool_system_edges"]), str(s["hits"]))
+    check(f"{len(EXPECTED['tool_system_edges'])} tool -> system links with R/W", s["hits"] == sorted(EXPECTED["tool_system_edges"]), str(s["hits"]))
     other = [e for e in ex.edges.values() if e.kind not in ("handoff", "calls", "uses_model", "hits")]
     check("no other edges", not other, str([(e.kind, ex.name_of(e.src), ex.name_of(e.dst)) for e in other]))
     check("stages in order", orch and orch[0].attrs.get("stages") == EXPECTED["stages"])

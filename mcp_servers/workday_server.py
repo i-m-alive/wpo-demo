@@ -12,15 +12,15 @@ WORKDAY_URL = os.getenv("WORKDAY_URL", "http://stub-workday:8000")
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True))
-def absences() -> list[dict]:
+def absences() -> dict:
     """Approved leave and sickness."""
     with stand_in("Workday"):
         return answer(httpx.get(f"{WORKDAY_URL}/absences", timeout=TIMEOUT_S))
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True))
-def workers() -> list[dict]:
-    """Contracts, hours, lines and site of every worker."""
+def workers() -> dict:
+    """Every worker: site, contract hours and skills."""
     with stand_in("Workday"):
         return answer(httpx.get(f"{WORKDAY_URL}/workers", timeout=TIMEOUT_S))
 

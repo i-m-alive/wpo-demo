@@ -15,11 +15,11 @@ app = FastAPI(title="wpo-agents", docs_url=None, redoc_url=None)
 
 
 class RunIn(BaseModel):
-    site: str | None = Field(None, pattern=r"^site-\d{2}$", description="One site, or none for all 14")
+    site: str | None = Field(None, pattern=r"^S\d{2}$", description="One site (S01 to S14), or none for all 14")
 
 
 class AskIn(BaseModel):
-    question: str = Field("Who is on shift tomorrow at site-01?", min_length=3, max_length=500)
+    question: str = Field("Who is on shift tomorrow at S01?", min_length=3, max_length=500)
 
 
 @app.exception_handler(ToolException)
@@ -41,7 +41,8 @@ async def run_roster(body: RunIn) -> dict:
         raise HTTPException(404, {"error": "unknown_site", "message": f"{body.site} is not in the production plan."})
     return {"sites": len(out.get("sites", [])), "published": bool(out.get("published")),
             "compliant": bool(out.get("compliant")), "rounds": out.get("rounds", 0), "breaches": out.get("breaches", []),
-            "solver_status": out.get("solver_status", ""), "forecast": out.get("forecast_note", "")}
+            "solver_status": out.get("solver_status", ""), "forecast": out.get("forecast_note", ""),
+            "forecast_ok": out.get("forecast_ok")}
 
 
 @app.post("/copilot/ask")
@@ -50,4 +51,4 @@ async def ask(body: AskIn) -> dict:
     if not is_open():
         raise HTTPException(423, {"error": "closed", "message": f"The copilot answers {describe()}."})
     out = await copilot.ainvoke({"question": body.question})
-    return {"site": out.get("site"), "answer": out.get("answer")}
+    return {"site": out.get("site"), "answer": out.get("answer"), "answer_ok": out.get("answer_ok")}

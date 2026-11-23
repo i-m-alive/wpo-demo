@@ -1,6 +1,9 @@
-# wpo-reference: six stand-in systems, one MCP server in front of each (plus policy and roster), and the agents.
-# Nothing here talks to a real system. One image (Dockerfile) for all 15 services; only the agents are published.
+# wpo-reference: nine stand-ins (six vendor systems, the policy service, the roster store and Azure OpenAI), one MCP
+# server in front of each of the first eight, and the agents. Nothing here talks to a real system. One image
+# (Dockerfile) for all 18 services; only the agents are published.
 #   docker compose up --build      then   curl -X POST localhost:8080/roster/run -H 'content-type: application/json' -d '{}'
+# Failure modes: WORKDAY_MODE=throttle, MES_MODE=empty, LMS_MODE=empty, CUOPT_MODE=infeasible, POLICY_MODE=empty
+# (see README, "Failure modes"); `make mode SYSTEM=workday MODE=throttle` switches one stand-in.
 services:
   stub-sap:
     build: .
@@ -11,26 +14,52 @@ services:
     build: .
     image: wpo-reference:local
     command: uvicorn stubs.stub_workday:app --host 0.0.0.0 --port 8000
+    environment:
+      WORKDAY_MODE: ${WORKDAY_MODE:-normal}  # normal | throttle (HTTP 429 with Retry-After)
+      WORKDAY_RETRY_AFTER: ${WORKDAY_RETRY_AFTER:-60}  # 30 | 60 | 120 seconds
     healthcheck: {test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
   stub-mes:
     build: .
     image: wpo-reference:local
     command: uvicorn stubs.stub_mes:app --host 0.0.0.0 --port 8000
+    environment:
+      MES_MODE: ${MES_MODE:-normal}  # normal | empty
     healthcheck: {test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
   stub-lms:
     build: .
     image: wpo-reference:local
     command: uvicorn stubs.stub_lms:app --host 0.0.0.0 --port 8000
+    environment:
+      LMS_MODE: ${LMS_MODE:-normal}  # normal | empty
     healthcheck: {test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
   stub-cuopt:
     build: .
     image: wpo-reference:local
     command: uvicorn stubs.stub_cuopt:app --host 0.0.0.0 --port 8000
+    environment:
+      CUOPT_MODE: ${CUOPT_MODE:-normal}  # normal | infeasible
     healthcheck: {test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
   stub-teams:
     build: .
     image: wpo-reference:local
     command: uvicorn stubs.stub_teams:app --host 0.0.0.0 --port 8000
+    healthcheck: {test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+  stub-policy:
+    build: .
+    image: wpo-reference:local
+    command: uvicorn stubs.stub_policy:app --host 0.0.0.0 --port 8000
+    environment:
+      POLICY_MODE: ${POLICY_MODE:-normal}  # normal | empty
+    healthcheck: {test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+  stub-roster-store:
+    build: .
+    image: wpo-reference:local
+    command: uvicorn stubs.stub_roster_store:app --host 0.0.0.0 --port 8000
+    healthcheck: {test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+  stub-llm:
+    build: .
+    image: wpo-reference:local
+    command: uvicorn stubs.stub_llm:app --host 0.0.0.0 --port 8000
     healthcheck: {test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
 
   mcp-sap:
@@ -91,12 +120,20 @@ services:
     build: .
     image: wpo-reference:local
     command: python -m mcp_servers.policy_server
+    environment:
+      POLICY_URL: http://stub-policy:8000
     healthcheck: {test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 9000), 2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+    depends_on:
+      stub-policy: {condition: service_healthy}
   mcp-roster:
     build: .
     image: wpo-reference:local
     command: python -m mcp_servers.roster_server
+    environment:
+      ROSTER_URL: http://stub-roster-store:8000
     healthcheck: {test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 9000), 2)"], interval: 5s, timeout: 3s, retries: 12, start_period: 5s}
+    depends_on:
+      stub-roster-store: {condition: service_healthy}
 
   agents:
     build: .
@@ -105,9 +142,10 @@ services:
     ports: ["127.0.0.1:${AGENTS_PORT:-8080}:8080"]  # this machine only
     environment:
       WPO_LLM: ${WPO_LLM:-auto}
-      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
-      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
-      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-gpt-4o}
+      # Azure OpenAI: the LLM stand-in unless .env names a real deployment (endpoint and key)
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-http://stub-llm:8000}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-stub-no-key}
+      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-gpt-4o-mini}
       COPILOT_HOURS: ${COPILOT_HOURS:-00:00-24:00}
       COPILOT_TZ: ${COPILOT_TZ:-Europe/London}
       WPO_FORCE_COMPLIANCE_FAIL: ${WPO_FORCE_COMPLIANCE_FAIL:-0}
@@ -129,3 +167,4 @@ services:
       mcp-teams: {condition: service_healthy}
       mcp-policy: {condition: service_healthy}
       mcp-roster: {condition: service_healthy}
+      stub-llm: {condition: service_healthy}

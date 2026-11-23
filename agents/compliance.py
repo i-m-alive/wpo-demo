@@ -4,37 +4,45 @@ from __future__ import annotations
 
 import os
 
-from .mcp_client import items, tools_named
+from .mcp_client import data, tools_named
 
 MAX_ROUNDS = 3
 
 
-def breaches(roster: dict, rules: list[dict], current: set[tuple[str, str]], hours: dict[str, float]) -> list[str]:
-    """Rules the roster breaks. The solver stand-in answers an empty roster, which breaks none."""
+def breaches(roster: list[dict], rules: list[dict], current: set[str], hours: dict[str, float]) -> list[str]:
+    """Rules the roster breaks, worded for a planner.
+
+    Only what one night's roster can show is checked: SKILL_REQUIRED (every assigned worker holds a current
+    qualification) and MAX_HOURS_PER_WEEK (contract hours). MIN_REST_HOURS and MAX_CONSECUTIVE_DAYS need the shifts of
+    earlier days, which no system here supplies, so they are not checked. No rules, or no roster, is a breach in
+    itself: the roster cannot be shown to keep the policy."""
+    if not rules:
+        return ["the policy service returned no rules, so the roster cannot be checked"]
+    if not roster:
+        return ["the solver returned no roster"]
+    value = {r["type"]: r.get("value") for r in rules}
+    max_hours = value.get("MAX_HOURS_PER_WEEK")
     out = []
-    limits = {r["id"]: r.get("limit") for r in rules}
-    for site, shifts in (roster or {}).items():
-        seen: set[str] = set()
-        for shift in shifts or []:
-            for w in shift.get("workers", []):
-                if (w, shift.get("line")) not in current and "current_training" in limits:
-                    out.append(f"{site}: {w} has no current training for {shift.get('line')}")
-                if w in seen and limits.get("one_shift_per_day"):
-                    out.append(f"{site}: {w} has two shifts")
-                seen.add(w)
-                if hours.get(w, 0) > (limits.get("max_weekly_hours") or 1e9):
-                    out.append(f"{site}: {w} is over the weekly hours limit")
+    for entry in roster:
+        site = entry.get("site_id")
+        for w in entry.get("assigned", []):
+            if value.get("SKILL_REQUIRED") and w not in current:
+                out.append(f"{site}: {w} has no current qualification")
+            if max_hours is not None and hours.get(w, 0) > max_hours:
+                out.append(f"{site}: {w} is over the weekly hours limit ({hours[w]:g} h, limit {max_hours} h)")
     return out
 
 
 async def compliance(state: dict) -> dict:
     tools = await tools_named("policy.rules", "lms.training_currency")
-    rules = items(await tools["rules"].ainvoke({}))
-    current = {(t["worker_id"], t["line"]) for t in items(await tools["training_currency"].ainvoke({})) if t["current"]}
-    found = breaches(state.get("roster", {}), rules, current, state.get("hours", {}))
+    rules = data(await tools["rules"].ainvoke({}))["rules"]
+    current = {q["worker_id"] for q in data(await tools["training_currency"].ainvoke({}))["qualifications"]
+               if q["status"] == "CURRENT"}
+    # a run with no sites (one that is not in the production plan) has nothing to check
+    found = breaches(state.get("roster", []), rules, current, state.get("hours", {})) if state.get("sites") else []
     if os.getenv("WPO_FORCE_COMPLIANCE_FAIL") == "1":  # to show the loop back to the optimizer in a demo
         found.append("forced by WPO_FORCE_COMPLIANCE_FAIL")
-    return {"compliant": not found and bool(rules), "breaches": found, "rounds": state.get("rounds", 0) + 1}
+    return {"compliant": not found, "breaches": found, "rounds": state.get("rounds", 0) + 1}
 
 
 def route_compliance(state: dict) -> str:

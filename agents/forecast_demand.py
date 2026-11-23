@@ -1,5 +1,5 @@
-"""Node 1 · forecast_demand: staffing demand per site and line, from SAP's production plan, MES line availability and
-Workday absences, with Azure OpenAI writing the reasoning a planner reads."""
+"""Node 1 · forecast_demand: staffing demand per site, from SAP's production plan, MES line availability and Workday
+absences, with Azure OpenAI checking the forecast before it goes on."""
 from __future__ import annotations
 
 import asyncio
@@ -8,20 +8,26 @@ import httpx
 from langchain_core.tools import ToolException
 from openai import APIError, RateLimitError
 
-from .llm import llm
-from .mcp_client import items, tools_named
+from .llm import CHECK, llm, verdict
+from .mcp_client import data, tools_named
 
 FIXED_DELAY_S = 1  # seconds, the same every time
-SHIFTS_PER_LINE = 2
 
 
-def demand_per_site(sites: list[str], lines: list[dict], absences: list[dict]) -> dict:
-    """Shifts to staff per site: two per running line, and how many people are already off that day."""
+def demand_per_site(plan: list[dict], lines: list[dict], absences: list[dict]) -> dict:
+    """People to roster per site: the headcount its planned line needs when MES reports that line running, none when
+    it does not, and how many of the site's people are absent.
+
+    Deliberate weakness W5 (see README): a line MES does not report counts as not running, so an empty answer from MES
+    (HTTP 200, no lines) reads as "every line is down" rather than as a failure. Demand drops to zero, yet the run goes
+    on and publishes a roster built on no line data. Leave it as it is."""
+    running = {x["line_id"] for x in lines if x.get("status") == "RUNNING"}
     out = {}
-    for site in sites:
-        running = [x["line"] for x in lines if x["site"] == site and x["status"] == "running"]
-        out[site] = {"lines": running, "shifts": len(running) * SHIFTS_PER_LINE,
-                     "absent": sum(1 for a in absences if a["site"] == site)}
+    for p in plan:
+        up = p["line_id"] in running
+        out[p["site_id"]] = {"line": p["line_id"], "shift": p["shift"], "running": up,
+                             "headcount": p["headcount_required"] if up else 0,
+                             "absent": sum(1 for a in absences if a["site_id"] == p["site_id"])}
     return out
 
 
@@ -29,9 +35,10 @@ def summary(demand: dict) -> str:
     """One line per site, as a planner would read it."""
     parts = []
     for site, d in demand.items():
-        lines = ", ".join(d["lines"]) or "no running line"
+        need = f"{d['headcount']} people on {d['line']}, {d['shift'].lower()} shift" if d["running"] \
+            else f"{d['line']} not running, no one needed"
         absent = f", {d['absent']} absent" if d["absent"] else ""
-        parts.append(f"{site}: {d['shifts']} shifts on {lines}{absent}")
+        parts.append(f"{site}: {need}{absent}")
     return "Demand " + "; ".join(parts) + "."
 
 
@@ -46,14 +53,16 @@ async def forecast_demand(state: dict) -> dict:
     while True:
         try:
             tools = await tools_named("sap.production_plan", "mes.line_availability", "workday.absences")
-            sites = items(await tools["production_plan"].ainvoke({}))
+            plan = data(await tools["production_plan"].ainvoke({}))["sites"]
             if state.get("only_site"):
-                sites = [s for s in sites if s == state["only_site"]]
-            lines = items(await tools["line_availability"].ainvoke({}))
-            absences = items(await tools["absences"].ainvoke({}))
-            demand = demand_per_site(sites, lines, absences)
-            note = await llm.ainvoke("Explain tonight's staffing demand for a production planner.\n"
-                                     f"DRAFT: {summary(demand)}")
-            return {"sites": sites, "demand": demand, "forecast_note": note.content}
+                plan = [p for p in plan if p["site_id"] == state["only_site"]]
+            lines = data(await tools["line_availability"].ainvoke({}))["lines"]
+            absences = data(await tools["absences"].ainvoke({}))["absences"]
+            demand = demand_per_site(plan, lines, absences)
+            draft = summary(demand)
+            check = await llm.ainvoke(f"Check tonight's staffing forecast for a production planner. {CHECK}\n"
+                                      f"FORECAST: {draft}")
+            return {"sites": [p["site_id"] for p in plan], "demand": demand, "forecast_note": draft,
+                    "forecast_ok": verdict(check.content)}
         except (ToolException, RateLimitError, APIError, httpx.HTTPError):
             await asyncio.sleep(FIXED_DELAY_S)

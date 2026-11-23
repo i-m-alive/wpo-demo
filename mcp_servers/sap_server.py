@@ -12,17 +12,17 @@ SAP_URL = os.getenv("SAP_URL", "http://stub-sap:8000")
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True))
-def production_plan() -> list[str]:
-    """Planned production: the ids of the sites that need a roster."""
+def production_plan() -> dict:
+    """Planned production per site: the line, the shift, the planned units and the headcount it needs."""
     with stand_in("SAP S/4"):
         return answer(httpx.get(f"{SAP_URL}/production_plan", timeout=TIMEOUT_S))
 
 
 @mcp.tool(annotations=ToolAnnotations(destructiveHint=True))
-def shift_confirm(site: str, shifts: list[dict]) -> dict:
-    """Confirms a site's staffed shifts back to production planning."""
+def shift_confirm(shifts: list[dict]) -> dict:
+    """Confirms the staffed shifts of every site back to production planning, in one call."""
     with stand_in("SAP S/4"):
-        return answer(httpx.post(f"{SAP_URL}/shift_confirm", json={"site": site, "shifts": shifts}, timeout=TIMEOUT_S))
+        return answer(httpx.post(f"{SAP_URL}/shift_confirm", json={"shifts": shifts}, timeout=TIMEOUT_S))
 
 
 if __name__ == "__main__":

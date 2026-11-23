@@ -1,22 +1,20 @@
-"""Shared pieces of the six stand-in systems: canned answers from data/, and a health route.
+"""Shared pieces of the stand-in systems: a health route, and the failure mode a stand-in runs in.
 
-Nothing here talks to a real system. Every answer is hard-coded JSON, the same on every call, with no delay.
+Nothing here talks to a real system. Every answer is a hard-coded constant from stubs/stub_responses.py, the same on
+every call, with no delay.
+
+Failure modes. A stand-in that has one reads it from its own variable (WORKDAY_MODE, MES_MODE, LMS_MODE, CUOPT_MODE,
+POLICY_MODE): "normal" (the default) or the stand-in's failure mode. Compose sets the variable, so a mode is switched by
+recreating that one container (`make mode SYSTEM=workday MODE=throttle`). A value the stand-in does not know stops it
+at start-up instead of letting it answer normally by mistake.
 """
 from __future__ import annotations
 
-import json
-from functools import cache
-from pathlib import Path
+import os
 
 from fastapi import FastAPI
 
-DATA = Path(__file__).resolve().parent.parent / "data"
-
-
-@cache
-def load(name: str):
-    """One canned answer, read once from data/<name>.json."""
-    return json.loads((DATA / f"{name}.json").read_text())
+NORMAL = "normal"
 
 
 def add_health(app: FastAPI) -> FastAPI:
@@ -24,3 +22,12 @@ def add_health(app: FastAPI) -> FastAPI:
     def healthz() -> dict:
         return {"ok": True, "service": app.title}
     return app
+
+
+def mode(variable: str, *failure_modes: str) -> str:
+    """The mode this stand-in runs in: "normal" or one of its failure modes. Raises ValueError for anything else."""
+    value = os.getenv(variable, NORMAL).strip().lower() or NORMAL
+    allowed = (NORMAL, *failure_modes)
+    if value not in allowed:
+        raise ValueError(f"{variable} must be one of {', '.join(allowed)}, not {value!r}")
+    return value

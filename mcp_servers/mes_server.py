@@ -12,8 +12,8 @@ MES_URL = os.getenv("MES_URL", "http://stub-mes:8000")
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True))
-def line_availability() -> list[dict]:
-    """Lines running, and planned maintenance."""
+def line_availability() -> dict:
+    """Which lines are running, and any maintenance window."""
     with stand_in("MES"):
         return answer(httpx.get(f"{MES_URL}/line_availability", timeout=TIMEOUT_S))
 

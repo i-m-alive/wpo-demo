@@ -8,7 +8,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY data/ data/
 COPY stubs/ stubs/
 COPY mcp_servers/ mcp_servers/
 COPY agents/ agents/

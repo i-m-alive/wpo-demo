@@ -12,8 +12,8 @@ LMS_URL = os.getenv("LMS_URL", "http://stub-lms:8000")
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True))
-def training_currency() -> list[dict]:
-    """Who is qualified for which line today."""
+def training_currency() -> dict:
+    """Each worker's qualifications and whether they are current."""
     with stand_in("Learning system"):
         return answer(httpx.get(f"{LMS_URL}/training_currency", timeout=TIMEOUT_S))
 

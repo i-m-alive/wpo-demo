@@ -93,24 +93,8 @@ def _texts(result) -> list[str]:
     return [b.get("text", "") if isinstance(b, dict) else getattr(b, "text", str(b)) for b in result or []]
 
 
-def _parse(text: str):
-    try:
-        return json.loads(text)
-    except ValueError:
-        return text  # a plain string item ("site-01")
-
-
 def data(result):
-    """A tool result that is one JSON object (solve, store, the write tools' {"status": "ok"})."""
+    """A tool result as the JSON object its stand-in answered. Every tool answers one object (reads come in an
+    envelope such as {"as_of": ..., "sites": [...]}), which MCP sends as one JSON text block."""
     texts = _texts(result)
-    return _parse(texts[0]) if texts else None
-
-
-def items(result) -> list:
-    """A tool result that is a list. MCP sends one text block per item (strings unquoted, objects as JSON); a single
-    block holding a JSON array is read as that array."""
-    texts = _texts(result)
-    if len(texts) == 1:
-        one = _parse(texts[0])
-        return one if isinstance(one, list) else [one]
-    return [_parse(t) for t in texts]
+    return json.loads(texts[0]) if texts else None

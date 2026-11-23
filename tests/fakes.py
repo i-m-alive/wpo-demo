@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import json
 
-from stubs._common import load
+from mcp_servers.roster_server import for_site
+from stubs import stub_responses as R
 
 
 def blocks(value) -> list[dict]:
-    """What a real MCP tool hands LangChain (checked against the running servers): a list arrives as one text block
-    per item, strings unquoted and objects as JSON; one object arrives as one JSON text block."""
-    if isinstance(value, list):
-        return [{"type": "text", "text": v if isinstance(v, str) else json.dumps(v, indent=2)} for v in value]
+    """What a real MCP tool hands LangChain (checked against the running servers): the object the tool returned, as
+    one JSON text block."""
     return [{"type": "text", "text": json.dumps(value, indent=2)}]
 
 
@@ -28,20 +27,19 @@ class FakeTool:
 
 
 def canned() -> dict[str, FakeTool]:
-    """Every tool, answering like the real servers do with the canned data."""
-    roster = {r["site"]: r for r in load("roster_published")}
+    """Every tool, answering like the real servers do with the canned answers of stubs/stub_responses.py."""
     return {
-        "production_plan": FakeTool("production_plan", load("sites")),
-        "line_availability": FakeTool("line_availability", load("line_availability")),
-        "absences": FakeTool("absences", load("absences")),
-        "workers": FakeTool("workers", load("workers")),
-        "training_currency": FakeTool("training_currency", load("training_currency")),
-        "solve": FakeTool("solve", {"status": "OK", "roster": {}}),
-        "rules": FakeTool("rules", load("policy_rules")),
-        "schedules": FakeTool("schedules", {"status": "ok"}),
-        "shift_confirm": FakeTool("shift_confirm", {"status": "ok"}),
-        "notify": FakeTool("notify", {"status": "ok"}),
-        "store": FakeTool("store", lambda a: roster.get(a["site"], {})),
+        "production_plan": FakeTool("production_plan", R.PRODUCTION_PLAN),
+        "line_availability": FakeTool("line_availability", R.LINE_AVAILABILITY),
+        "absences": FakeTool("absences", R.ABSENCES),
+        "workers": FakeTool("workers", R.WORKERS),
+        "training_currency": FakeTool("training_currency", R.TRAINING_CURRENCY),
+        "solve": FakeTool("solve", R.SOLVE_OK),
+        "rules": FakeTool("rules", R.POLICY_RULES),
+        "schedules": FakeTool("schedules", R.SCHEDULES_OK),
+        "shift_confirm": FakeTool("shift_confirm", R.SHIFT_CONFIRM_OK),
+        "notify": FakeTool("notify", R.NOTIFY_ACCEPTED),
+        "store": FakeTool("store", lambda a: for_site(R.ROSTER_STORE_GET, a["site"])),
     }
 
 

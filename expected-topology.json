@@ -1,14 +1,15 @@
 {
-  "_note": "What NaviStorm must draw when pointed at this repo, with nothing configured by hand (written by hand before the first scan). Edges: [kind, source, target, R/W or empty]. agent_level_edges are the 18 the Topology header counts; the compliance -> optimizer loop and the 9 tool -> system links are counted apart.",
-  "counts": {"orchestrators": 1, "agents": 5, "mcp_tools": 11, "systems": 6, "models": 1, "agent_level_edges": 18},
+  "_note": "What NaviStorm must draw when pointed at this repo, with nothing configured by hand (written by hand before the first scan; updated 23 Nov 2026 for the canned stub responses). Edges: [kind, source, target, R/W or empty]. agent_level_edges are the 18 the Topology header counts; the compliance -> optimizer loop and the 11 tool -> system links are counted apart. The policy service and the roster store are stand-ins NaviStorm does not know by name, so it names them after their hosts (stub-policy, stub-roster-store). The LLM stand-in is the model's endpoint, not a system.",
+  "counts": {"orchestrators": 1, "agents": 5, "mcp_tools": 11, "systems": 8, "models": 1, "agent_level_edges": 18},
   "orchestrator": "supervisor",
   "stages": [["forecast_demand"], ["optimize_roster"], ["compliance"], ["writeback"]],
   "agents": ["compliance", "forecast_demand", "manager_copilot", "optimize_roster", "writeback"],
   "mcp_tools": ["cuopt.solve", "lms.training_currency", "mes.line_availability", "policy.rules", "roster.store",
                 "sap.production_plan", "sap.shift_confirm", "teams.notify", "workday.absences", "workday.schedules",
                 "workday.workers"],
-  "systems": ["Learning system", "MES", "Microsoft Teams", "NVIDIA cuOpt", "SAP S/4", "Workday"],
-  "model": {"provider": "Azure OpenAI", "model_id": "gpt-4o"},
+  "systems": ["Learning system", "MES", "Microsoft Teams", "NVIDIA cuOpt", "SAP S/4", "Workday", "stub-policy",
+              "stub-roster-store"],
+  "model": {"provider": "Azure OpenAI", "model_id": "gpt-4o-mini"},
   "agent_level_edges": [
     ["handoff", "supervisor", "forecast_demand", ""],
     ["handoff", "forecast_demand", "optimize_roster", ""],
@@ -26,8 +27,8 @@
     ["calls", "writeback", "sap.shift_confirm", ""],
     ["calls", "writeback", "teams.notify", ""],
     ["calls", "manager_copilot", "roster.store", ""],
-    ["uses_model", "forecast_demand", "gpt-4o", ""],
-    ["uses_model", "manager_copilot", "gpt-4o", ""]
+    ["uses_model", "forecast_demand", "gpt-4o-mini", ""],
+    ["uses_model", "manager_copilot", "gpt-4o-mini", ""]
   ],
   "loops": [["handoff", "compliance", "optimize_roster", ""]],
   "tool_system_edges": [
@@ -39,7 +40,9 @@
     ["hits", "mes.line_availability", "MES", "R"],
     ["hits", "lms.training_currency", "Learning system", "R"],
     ["hits", "cuopt.solve", "NVIDIA cuOpt", "R"],
-    ["hits", "teams.notify", "Microsoft Teams", "W"]
+    ["hits", "teams.notify", "Microsoft Teams", "W"],
+    ["hits", "policy.rules", "stub-policy", "R"],
+    ["hits", "roster.store", "stub-roster-store", "R"]
   ],
   "triggers": {"supervisor": ["POST /roster/run"], "manager_copilot": ["POST /copilot/ask"]},
   "write_tools": ["sap.shift_confirm", "teams.notify", "workday.schedules"],

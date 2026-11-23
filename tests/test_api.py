@@ -21,16 +21,19 @@ def test_roster_for_all_sites_and_one(api):
     r = api.post("/roster/run", json={})
     body = r.json()
     assert r.status_code == 200 and body["sites"] == 14 and body["published"] and body["rounds"] == 1
-    assert body["forecast"].startswith("Demand site-01:")
-    one = api.post("/roster/run", json={"site": "site-07"}).json()
+    assert body["compliant"] and body["breaches"] == [] and body["solver_status"] == "OK"
+    assert body["forecast"].startswith("Demand S01: 5 people on S01-L1") and body["forecast_ok"] is True
+    one = api.post("/roster/run", json={"site": "S07"}).json()
     assert one["sites"] == 1 and one["published"]
-    assert api.post("/roster/run", json={"site": "berlin"}).status_code == 422
+    for bad in ("berlin", "site-07", "S7"):
+        assert api.post("/roster/run", json={"site": bad}).status_code == 422
 
 
 def test_copilot_open_and_closed(api, monkeypatch):
     monkeypatch.setenv("COPILOT_HOURS", "00:00-24:00")
-    r = api.post("/copilot/ask", json={"question": "Who is on shift at site-02?"})
-    assert r.status_code == 200 and r.json()["site"] == "site-02"
+    r = api.post("/copilot/ask", json={"question": "Who is on shift at S02?"})
+    assert r.status_code == 200 and r.json() == {
+        "site": "S02", "answer": "On S02 the roster is: early shift on S02-L1: W01, W02, W03, W04, W05.", "answer_ok": True}
     from datetime import datetime
     from zoneinfo import ZoneInfo
     h = datetime.now(ZoneInfo("Europe/London")).hour
@@ -41,8 +44,8 @@ def test_copilot_open_and_closed(api, monkeypatch):
 
 
 def test_a_site_not_in_the_plan_is_404(api):
-    r = api.post("/roster/run", json={"site": "site-99"})
-    assert r.status_code == 404 and r.json()["detail"]["message"] == "site-99 is not in the production plan."
+    r = api.post("/roster/run", json={"site": "S99"})
+    assert r.status_code == 404 and r.json()["detail"]["message"] == "S99 is not in the production plan."
 
 
 def test_a_failing_system_is_a_clear_502(monkeypatch):
@@ -52,6 +55,6 @@ def test_a_failing_system_is_a_clear_502(monkeypatch):
     tools = canned()
     tools["notify"] = FakeTool("notify", {}, fail=[ToolException("Microsoft Teams could not be reached (ConnectError)")])
     patch_tools(monkeypatch, tools)
-    r = TestClient(app).post("/roster/run", json={"site": "site-01"})
+    r = TestClient(app).post("/roster/run", json={"site": "S01"})
     assert r.status_code == 502
     assert r.json()["detail"] == {"error": "system_failed", "message": "Microsoft Teams could not be reached (ConnectError)"}
